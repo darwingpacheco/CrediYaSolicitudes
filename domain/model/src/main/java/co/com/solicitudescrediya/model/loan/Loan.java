@@ -8,9 +8,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Loan {
     private Long id;
-    private BigDecimal monto;
-    private Integer plazo;
-    private String email;
-    private int idEstado;
-    private int idTipoPrestamo;
+    private String numberDocumentUser;
+    private BigDecimal amountLoan;
+    private Integer termLoan;
+    private String emailUser;
+    private int stateLoanId;
+    private int typeLoanId;
 }

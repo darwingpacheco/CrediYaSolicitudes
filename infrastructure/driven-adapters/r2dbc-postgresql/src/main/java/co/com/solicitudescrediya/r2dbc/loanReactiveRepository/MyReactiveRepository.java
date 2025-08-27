@@ -1,10 +1,14 @@
-package co.com.solicitudescrediya.r2dbc;
+package co.com.solicitudescrediya.r2dbc.loanReactiveRepository;
 
 import co.com.solicitudescrediya.r2dbc.entities.LoanEntity;
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Mono;
 
 // TODO: This file is just an example, you should delete or modify it
 public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity, Integer>, ReactiveQueryByExampleExecutor<LoanEntity> {
 
+    @Query("SELECT * FROM solicitud WHERE documento_identidad = :numberDocument")
+    Mono<LoanEntity> findByNumberDoc(String numberDocument);
 }

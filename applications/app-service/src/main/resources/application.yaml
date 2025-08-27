@@ -1,16 +1,38 @@
 server:
   port: 8080
+
 spring:
   application:
     name: "CrediYaSolicitudes"
   devtools:
     add-properties: false
+
   h2:
     console:
       enabled: true
       path: "/h2"
+
   profiles:
     include: null
+
+  datasource:
+    url: "jdbc:h2:mem:test"
+    username: "sa"
+    password: "pass"
+    driverClassName: "org.h2.Driver"
+
+  jpa:
+    databasePlatform: "org.hibernate.dialect.H2Dialect"
+
+adapter:
+  r2dbc-postgresql:
+    host: localhost
+    port: 5432
+    database: CrediYaSolicitudes
+    schema: public
+    username: postgres
+    password: 1005076148
+
 management:
   endpoints:
     web:
@@ -20,5 +42,12 @@ management:
     health:
       probes:
         enabled: true
+
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    io.r2dbc.postgresql: DEBUG
+    co.com.registeruser: DEBUG

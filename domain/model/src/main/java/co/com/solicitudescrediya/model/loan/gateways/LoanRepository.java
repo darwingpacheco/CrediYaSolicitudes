@@ -5,4 +5,6 @@ import reactor.core.publisher.Mono;
 
 public interface LoanRepository {
     Mono<Loan> createLoan(Loan loan);
+
+    Mono<Boolean> getUserByDocument(String numberDocumetUser);
 }

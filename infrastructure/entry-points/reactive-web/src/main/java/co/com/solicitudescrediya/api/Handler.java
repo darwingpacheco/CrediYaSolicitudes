@@ -1,37 +1,45 @@
 package co.com.solicitudescrediya.api;
 
 import co.com.solicitudescrediya.api.dto.LoanRequestDTO;
+import co.com.solicitudescrediya.api.globalExceptions.ValidateExceptionHandler;
 import co.com.solicitudescrediya.api.mapper.LoanMapperDTO;
+import co.com.solicitudescrediya.api.utils.ValidatorUtils;
 import co.com.solicitudescrediya.usecase.loan.LoanUseCase;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.FieldError;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class Handler {
 
     private final LoanUseCase loanUseCase;
     private final LoanMapperDTO loanMapperDTO;
-    private final jakarta.validation.Validator validator;
+    private final ValidatorUtils validatorUtils;
 
     public Mono<ServerResponse> createLoan(ServerRequest request) {
-        return request.bodyToMono(LoanRequestDTO.class)
-                .flatMap(dto -> {
-                    var validateFields = validator.validate(dto);
-                    if (!validateFields.isEmpty()) {
-                        String errorMsg = validateFields.stream()
-                                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                                .collect(Collectors.joining(", "));
-                        return Mono.error(new IllegalArgumentException(errorMsg));
+        return validatorUtils.validateRequestBody(request, LoanRequestDTO.class)
+                .doOnNext(loanRequest -> log.info("Request createLoan OK: {}", loanRequest))
+                .flatMap(loanRequest -> loanUseCase.createLoan(loanMapperDTO.toLoan(loanRequest))
+                        .doOnNext(loan -> log.info("Loan application created: {}", loan))
+                        .flatMap(loan -> ServerResponse.ok().bodyValue(loanMapperDTO.toLoanResponseDTO(loan)))
+                )
+                .doOnError(error -> {
+                    if (error instanceof ValidateExceptionHandler ex) {
+                        ex.getError().getAllErrors().forEach(err -> {
+                            log.error("Validación fallida: campo={}, mensaje={}",
+                                    ((FieldError) err).getField(),
+                                    err.getDefaultMessage());
+                        });
+                    } else {
+                        log.error("Error to create loan: {}", error.getMessage(), error);
                     }
-
-                    return loanUseCase.createLoan(loanMapperDTO.toLoan(dto))
-                            .flatMap(loan -> ServerResponse.ok().bodyValue(loanMapperDTO.toLoanResponseDTO(loan)));
                 });
     }
 }

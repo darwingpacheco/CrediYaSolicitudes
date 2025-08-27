@@ -1,4 +1,4 @@
-package co.com.solicitudescrediya.r2dbc;
+package co.com.solicitudescrediya.r2dbc.loanReactiveRepository;
 
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
@@ -27,5 +27,13 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     public Mono<Loan> createLoan(Loan loan) {
         return repository.save(this.toData(loan))
                 .map(this::toEntity);
+    }
+
+    @Override
+    public Mono<Boolean> getUserByDocument(String numberDocumetUser) {
+        return this.repository.findByNumberDoc(numberDocumetUser)
+                .map(this::toEntity)
+                .map(user -> true)
+                .defaultIfEmpty(false);
     }
 }
