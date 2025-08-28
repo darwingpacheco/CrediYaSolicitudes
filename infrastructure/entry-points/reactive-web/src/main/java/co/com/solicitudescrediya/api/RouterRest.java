@@ -24,14 +24,14 @@ public class RouterRest {
     @Bean
     @RouterOperations({
             @RouterOperation(
-                    path = "/api/v1/usuarios",
+                    path = "/api/v1/solicitudes",
                     produces = { "application/json" },
                     method = RequestMethod.POST,
                     beanClass = Handler.class,
-                    beanMethod = "createUser",
+                    beanMethod = "createLoan",
                     operation = @Operation(
-                            operationId = "CreateNewUser",
-                            summary = "Create new user client",
+                            operationId = "createLoan",
+                            summary = "Create new loan for client",
                             requestBody = @RequestBody(
                                     required = true,
                                     description = "User object to create",
@@ -41,7 +41,9 @@ public class RouterRest {
                                     )
                             ),
                             responses = {
-                                    @ApiResponse(responseCode = "200", description = "Successful operation")
+                                    @ApiResponse(responseCode = "200", description = "Successful operation"),
+                                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                                    @ApiResponse(responseCode = "500", description = "Internal server error")
                             }
                     )
             )
