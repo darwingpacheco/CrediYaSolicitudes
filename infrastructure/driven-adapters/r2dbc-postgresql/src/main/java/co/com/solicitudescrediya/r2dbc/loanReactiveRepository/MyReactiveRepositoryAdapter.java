@@ -28,12 +28,4 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         return repository.save(this.toData(loan))
                 .map(this::toEntity);
     }
-
-    @Override
-    public Mono<Boolean> getUserByDocument(String numberDocumetUser) {
-        return this.repository.findByNumberDoc(numberDocumetUser)
-                .map(this::toEntity)
-                .map(user -> true)
-                .defaultIfEmpty(false);
-    }
 }
