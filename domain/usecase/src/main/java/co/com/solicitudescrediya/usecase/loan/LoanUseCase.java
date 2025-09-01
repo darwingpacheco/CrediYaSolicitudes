@@ -1,11 +1,13 @@
 package co.com.solicitudescrediya.usecase.loan;
 
+import co.com.solicitudescrediya.model.adapterExceptionApi.ApiError;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
 import co.com.solicitudescrediya.model.stateloan.gateways.StateLoanRepository;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
+import co.com.solicitudescrediya.usecase.loan.conflictException.CustomException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -20,8 +22,16 @@ public class LoanUseCase {
     public Mono<Loan> createLoan(Loan loan, String token) {
         String emailUser = loan.getEmailUser();
         return userGateway.existUserByEmail(emailUser, token)
-                .flatMap(userExists -> {
-                    if (!userExists)
+                .flatMap(userResponse -> {
+
+                    int status = userResponse.statusCode();
+                    String message = userResponse.body();
+
+                    if (status == 401)
+                        return Mono.error(new CustomException(new ApiError("Unauthorized", message, 401)));
+                    else if (status == 403)
+                        return Mono.error(new CustomException(new ApiError("Forbiden", message, 403)));
+                    else if (status == 404 || !message.equalsIgnoreCase("exists"))
                         return Mono.error(new ConflictException("El usuario: " + emailUser + " no existe"));
 
                     loan.setStateLoanId(1);
