@@ -31,23 +31,29 @@ public class LoanUseCase {
                         return Mono.error(new CustomException(new ApiError("Unauthorized", message, 401)));
                     else if (status == 403)
                         return Mono.error(new CustomException(new ApiError("Forbiden", message, 403)));
-                    else if (status == 404 || !message.equalsIgnoreCase("exists"))
+                    else if (status == 404 || message.equalsIgnoreCase("USER_NOTFOUND"))
                         return Mono.error(new ConflictException("El usuario: " + emailUser + " no existe"));
 
                     loan.setStateLoanId(1);
+                    int idType = loan.getTypeLoanId();
                     Mono<Boolean> stateCheck = stateLoanRepository.findByLoanId(loan.getStateLoanId());
-                    Mono<Boolean> typeCheck = typeLoanRepository.findByLoanType(loan.getTypeLoanId());
+                    Mono<Boolean> typeCheck = typeLoanRepository.findByLoanType(idType);
+                    Mono<Boolean> valueInRange = typeLoanRepository.findValueRange(idType, loan.getAmountLoan());
 
-                    return Mono.zip(stateCheck, typeCheck)
+                    return Mono.zip(stateCheck, typeCheck, valueInRange)
                             .flatMap(tuple -> {
                                 Boolean stateExists = tuple.getT1();
                                 Boolean typeExists = tuple.getT2();
+                                Boolean valueExist = tuple.getT3();
 
                                 if (!stateExists)
                                     return Mono.error(new ConflictException("En este momento no es posible asignarte un estado de préstamo"));
 
                                 if (!typeExists)
                                     return Mono.error(new ConflictException("No existe el tipo de préstamo solicitado"));
+
+                                if (!valueExist)
+                                    return Mono.error(new ConflictException("El monto ingresado no esta permitido"));
 
                                 return loanRepository.createLoan(loan);
                             });
