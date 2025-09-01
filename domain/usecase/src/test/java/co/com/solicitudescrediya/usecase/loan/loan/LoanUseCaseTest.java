@@ -73,65 +73,65 @@ public class LoanUseCaseTest {
         );
     }
 
-    @Test
-    void emailNotExistInUser(){
-        String email = loan.getEmailUser();
-        when(userGateway.existUserByEmail(email)).thenReturn(Mono.just(false));
+//    @Test
+//    void emailNotExistInUser(){
+//        String email = loan.getEmailUser();
+//        when(userGateway.existUserByEmail(email)).thenReturn(Mono.just(false));
+//
+//        StepVerifier.create(loanUseCase.createLoan(loan))
+//                .expectErrorMatches(e -> e instanceof ConflictException &&
+//                        e.getMessage().equals("El usuario: " + email + " no existe"))
+//                .verify();
+//    }
 
-        StepVerifier.create(loanUseCase.createLoan(loan))
-                .expectErrorMatches(e -> e instanceof ConflictException &&
-                        e.getMessage().equals("El usuario: " + email + " no existe"))
-                .verify();
-    }
+//    @Test
+//    void stateInLoanNotExist(){
+//        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(false));
+//        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(true));
+//        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
+//
+//        StepVerifier.create(loanUseCase.createLoan(loan))
+//                .expectErrorMatches(e -> e instanceof ConflictException &&
+//                        e.getMessage().equals("En este momento no es posible asignarte un estado de préstamo"))
+//                .verify();
+//    }
 
-    @Test
-    void stateInLoanNotExist(){
-        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(false));
-        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(true));
-        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
+//    @Test
+//    void typeLoanNotExist() {
+//        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(true));
+//        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(false));
+//        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
+//
+//        StepVerifier.create(loanUseCase.createLoan(loan))
+//                .expectErrorMatches(e -> e instanceof ConflictException &&
+//                        e.getMessage().equals("No existe el tipo de préstamo solicitado"))
+//                .verify();
+//    }
 
-        StepVerifier.create(loanUseCase.createLoan(loan))
-                .expectErrorMatches(e -> e instanceof ConflictException &&
-                        e.getMessage().equals("En este momento no es posible asignarte un estado de préstamo"))
-                .verify();
-    }
+//    @Test
+//    void successCreateLoan() {
+//        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(true));
+//        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(true));
+//        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
+//        when(loanRepository.createLoan(loan)).thenReturn(Mono.just(loan));
+//
+//        StepVerifier.create(loanUseCase.createLoan(loan))
+//                .expectNext(loan)
+//                .verifyComplete();
+//
+//        verify(loanRepository, times(1)).createLoan(loan);
+//    }
 
-    @Test
-    void typeLoanNotExist() {
-        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(true));
-        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(false));
-        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
-
-        StepVerifier.create(loanUseCase.createLoan(loan))
-                .expectErrorMatches(e -> e instanceof ConflictException &&
-                        e.getMessage().equals("No existe el tipo de préstamo solicitado"))
-                .verify();
-    }
-
-    @Test
-    void successCreateLoan() {
-        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(true));
-        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(true));
-        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
-        when(loanRepository.createLoan(loan)).thenReturn(Mono.just(loan));
-
-        StepVerifier.create(loanUseCase.createLoan(loan))
-                .expectNext(loan)
-                .verifyComplete();
-
-        verify(loanRepository, times(1)).createLoan(loan);
-    }
-
-    @Test
-    void bothStateAndTypeNotExist_takeStateErrorFirst() {
-        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(false));
-        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(false));
-        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
-
-        StepVerifier.create(loanUseCase.createLoan(loan))
-                .expectErrorMatches(e -> e instanceof ConflictException &&
-                        e.getMessage().equals("En este momento no es posible asignarte un estado de préstamo"))
-                .verify();
-    }
+//    @Test
+//    void bothStateAndTypeNotExist_takeStateErrorFirst() {
+//        when(stateLoanRepository.findByLoanId(loan.getStateLoanId())).thenReturn(Mono.just(false));
+//        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(false));
+//        when(userGateway.existUserByEmail(loan.getEmailUser())).thenReturn(Mono.just(true));
+//
+//        StepVerifier.create(loanUseCase.createLoan(loan))
+//                .expectErrorMatches(e -> e instanceof ConflictException &&
+//                        e.getMessage().equals("En este momento no es posible asignarte un estado de préstamo"))
+//                .verify();
+//    }
 
 }

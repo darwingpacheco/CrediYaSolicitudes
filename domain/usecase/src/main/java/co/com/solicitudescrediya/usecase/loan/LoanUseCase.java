@@ -17,9 +17,9 @@ public class LoanUseCase {
     private final TypeLoanRepository typeLoanRepository;
     private final UserGateway userGateway;
 
-    public Mono<Loan> createLoan(Loan loan) {
+    public Mono<Loan> createLoan(Loan loan, String token) {
         String emailUser = loan.getEmailUser();
-        return userGateway.existUserByEmail(emailUser)
+        return userGateway.existUserByEmail(emailUser, token)
                 .flatMap(userExists -> {
                     if (!userExists)
                         return Mono.error(new ConflictException("El usuario: " + emailUser + " no existe"));

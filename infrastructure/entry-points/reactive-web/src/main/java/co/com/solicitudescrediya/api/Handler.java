@@ -24,9 +24,11 @@ public class Handler {
     private final ValidatorUtils validatorUtils;
 
     public Mono<ServerResponse> createLoan(ServerRequest request) {
+        String token = request.headers().firstHeader("Authorization");
+
         return validatorUtils.validateRequestBody(request, LoanRequestDTO.class)
                 .doOnNext(loanRequest -> log.info("Request createLoan OK: {}", loanRequest))
-                .flatMap(loanRequest -> loanUseCase.createLoan(loanMapperDTO.toLoan(loanRequest))
+                .flatMap(loanRequest -> loanUseCase.createLoan(loanMapperDTO.toLoan(loanRequest), token)
                         .doOnNext(loan -> log.info("Loan application created: {}", loan))
                         .flatMap(loan -> ServerResponse.ok().bodyValue(loanMapperDTO.toLoanResponseDTO(loan)))
                 )
