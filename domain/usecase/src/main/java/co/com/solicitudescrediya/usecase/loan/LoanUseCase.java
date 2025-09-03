@@ -32,7 +32,9 @@ public class LoanUseCase {
                     else if (status == 403)
                         return Mono.error(new CustomException(new ApiError("Forbiden", message, 403)));
                     else if (status == 404 || message.equalsIgnoreCase("USER_NOTFOUND"))
-                        return Mono.error(new ConflictException("El usuario: " + emailUser + " no existe"));
+                        return Mono.error(new ConflictException("El usuario: {} no existe" + emailUser + " no existe"));
+                    else if (status == 409 || message.equalsIgnoreCase("USER_NOT_MATCH"))
+                        return Mono.error(new ConflictException("El email del token no coincide con el email proporcionado"));
 
                     loan.setStateLoanId(1);
                     int idType = loan.getTypeLoanId();
