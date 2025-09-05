@@ -1,7 +1,11 @@
 package co.com.solicitudescrediya.model.stateloan.gateways;
 
+import co.com.solicitudescrediya.model.stateloan.LoanState;
 import reactor.core.publisher.Mono;
 
 public interface StateLoanRepository {
-    Mono<Boolean> findByLoanId(int stateLoanId);
+    Mono<LoanState> findByStateLoan(int stateLoanId);
+
+    Mono<LoanState> getAllLoanState(int state);
+
 }

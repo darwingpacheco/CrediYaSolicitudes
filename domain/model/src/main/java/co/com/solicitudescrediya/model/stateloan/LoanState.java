@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class LoanState {
-    private Long id;
+    private Integer id;
     private String stateName;
     private String stateDescription;
 }

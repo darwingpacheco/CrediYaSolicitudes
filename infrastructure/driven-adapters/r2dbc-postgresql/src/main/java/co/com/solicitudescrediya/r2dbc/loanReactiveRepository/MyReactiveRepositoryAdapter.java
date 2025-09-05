@@ -7,6 +7,7 @@ import co.com.solicitudescrediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -26,6 +27,18 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<Loan> createLoan(Loan loan) {
         return repository.save(this.toData(loan))
+                .map(this::toEntity);
+    }
+
+    @Override
+    public Flux<Loan> findPendingForReview() {
+        return repository.findByEstados()
+                .map(this::toEntity);
+    }
+
+    @Override
+    public Flux<Loan> findApprovedByEmail(String emailUser) {
+        return repository.findApprovedByEmail(emailUser)
                 .map(this::toEntity);
     }
 }

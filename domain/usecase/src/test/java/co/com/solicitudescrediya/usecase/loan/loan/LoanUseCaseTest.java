@@ -46,32 +46,32 @@ public class LoanUseCaseTest {
     private LoanState loanState;
     private LoanType loanType;
 
-    @BeforeEach
-    void setUp() {
-        loan = new Loan(
-                1L,
-                "1234227890",
-                BigDecimal.valueOf(3000000),
-                12,
-                "cliente@ejemplo.com",
-                1,
-                1
-        );
-
-        loanState = new LoanState(
-                1L,
-                "'PENDIENTE'",
-                "Pendiente de revisión"
-        );
-
-        loanType = new LoanType(1L,
-                    "Préstamo Personal",
-                BigDecimal.valueOf(1000000),
-                BigDecimal.valueOf(20000000),
-                BigDecimal.valueOf(2.5),
-                TRUE
-        );
-    }
+//    @BeforeEach
+//    void setUp() {
+//        loan = new Loan(
+//                1L,
+//                "1234227890",
+//                BigDecimal.valueOf(3000000),
+//                12,
+//                "cliente@ejemplo.com",
+//                1,
+//                1
+//        );
+//
+//        loanState = new LoanState(
+//                1L,
+//                "'PENDIENTE'",
+//                "Pendiente de revisión"
+//        );
+//
+//        loanType = new LoanType(1L,
+//                    "Préstamo Personal",
+//                BigDecimal.valueOf(1000000),
+//                BigDecimal.valueOf(20000000),
+//                BigDecimal.valueOf(2.5),
+//                TRUE
+//        );
+//    }
 
 //    @Test
 //    void emailNotExistInUser(){

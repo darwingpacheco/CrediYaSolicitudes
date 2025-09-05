@@ -25,18 +25,21 @@ public class TypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     @Transactional
-    public Mono<Boolean> findByLoanType(int typeLoanId) {
+    public Mono<LoanType> findByLoanType(int typeLoanId) {
         return this.repository.existLoanTypeById(typeLoanId)
-                .map(this::toEntity)
-                .map(loanId -> true)
-                .defaultIfEmpty(false);
+                .map(this::toEntity);
     }
 
     @Override
-    public Mono<Boolean> findValueRange(int idType, BigDecimal amountLoan) {
+    public Mono<LoanType> findValueRange(int idType, BigDecimal amountLoan) {
         return this.repository.validateRangeById(idType, amountLoan)
-                .map(loanId -> true)
-                .defaultIfEmpty(false);
+                .map(this::toEntity);
+    }
+
+    @Override
+    public Mono<LoanType> getAllLoanType(int idType) {
+        return this.repository.findById(idType)
+                .map(this::toEntity);
     }
 }
 

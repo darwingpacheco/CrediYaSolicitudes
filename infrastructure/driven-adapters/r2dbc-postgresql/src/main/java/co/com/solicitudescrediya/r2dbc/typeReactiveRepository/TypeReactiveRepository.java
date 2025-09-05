@@ -14,7 +14,7 @@ public interface TypeReactiveRepository extends ReactiveCrudRepository<LoanTypeE
         ReactiveQueryByExampleExecutor<LoanTypeEntity> {
 
     @Query("SELECT * FROM tipo_prestamo WHERE id_tipo_prestamo = :typeLoanId")
-    Mono<LoanTypeEntity> existLoanTypeById(int typeLoanId);
+    Mono<LoanTypeEntity> existLoanTypeById(long typeLoanId);
 
     @Query("SELECT * FROM tipo_prestamo " +
             "WHERE id_tipo_prestamo = :idType " +

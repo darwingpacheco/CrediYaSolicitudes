@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 
 public interface TypeLoanRepository {
 
-    Mono<Boolean> findByLoanType(int typeLoanId);
+    Mono<LoanType> findByLoanType(int typeLoanId);
 
-    Mono<Boolean> findValueRange(int idType, BigDecimal amountLoan);
+    Mono<LoanType> findValueRange(int idType, BigDecimal amountLoan);
+
+    Mono<LoanType> getAllLoanType(int idType);
 }

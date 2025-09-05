@@ -1,15 +1,25 @@
 package co.com.solicitudescrediya.usecase.loan;
 
 import co.com.solicitudescrediya.model.adapterExceptionApi.ApiError;
+import co.com.solicitudescrediya.model.loan.ListLoanUserDTO;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
+import co.com.solicitudescrediya.model.stateloan.LoanState;
 import co.com.solicitudescrediya.model.stateloan.gateways.StateLoanRepository;
+import co.com.solicitudescrediya.model.typeloan.LoanType;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
+import co.com.solicitudescrediya.model.user.User;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
-import co.com.solicitudescrediya.usecase.loan.conflictException.CustomException;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import static co.com.solicitudescrediya.model.util.Constants.*;
 
 @RequiredArgsConstructor
 public class LoanUseCase {
@@ -24,41 +34,54 @@ public class LoanUseCase {
         return userGateway.existUserByEmail(emailUser, token)
                 .flatMap(userResponse -> {
 
-                    int status = userResponse.statusCode();
-                    String message = userResponse.body();
+                    if (userResponse.statusCode() != 200) {
+                        return Mono.error(new ConflictException(userResponse.body()));
+                    }
 
-                    if (status == 401)
-                        return Mono.error(new CustomException(new ApiError("Unauthorized", message, 401)));
-                    else if (status == 403)
-                        return Mono.error(new CustomException(new ApiError("Forbiden", message, 403)));
-                    else if (status == 404 || message.equalsIgnoreCase("USER_NOTFOUND"))
-                        return Mono.error(new ConflictException("El usuario: {} no existe" + emailUser + " no existe"));
-                    else if (status == 409 || message.equalsIgnoreCase("USER_NOT_MATCH"))
-                        return Mono.error(new ConflictException("El email del token no coincide con el email proporcionado"));
-
-                    loan.setStateLoanId(1);
-                    int idType = loan.getTypeLoanId();
-                    Mono<Boolean> stateCheck = stateLoanRepository.findByLoanId(loan.getStateLoanId());
-                    Mono<Boolean> typeCheck = typeLoanRepository.findByLoanType(idType);
-                    Mono<Boolean> valueInRange = typeLoanRepository.findValueRange(idType, loan.getAmountLoan());
-
-                    return Mono.zip(stateCheck, typeCheck, valueInRange)
-                            .flatMap(tuple -> {
-                                Boolean stateExists = tuple.getT1();
-                                Boolean typeExists = tuple.getT2();
-                                Boolean valueExist = tuple.getT3();
-
-                                if (!stateExists)
-                                    return Mono.error(new ConflictException("En este momento no es posible asignarte un estado de préstamo"));
-
-                                if (!typeExists)
-                                    return Mono.error(new ConflictException("No existe el tipo de préstamo solicitado"));
-
-                                if (!valueExist)
-                                    return Mono.error(new ConflictException("El monto ingresado no esta permitido"));
-
+                    return stateLoanRepository.findByStateLoan(loan.getStateLoanId())
+                            .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
+                            .flatMap(loanType -> typeLoanRepository.findByLoanType(loan.getTypeLoanId()))
+                            .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
+                            .flatMap(amountType -> typeLoanRepository.findValueRange(amountType.getId(), loan.getAmountLoan()))
+                            .switchIfEmpty(Mono.error(new ConflictException(AMOUNT_NOT_RANGE)))
+                            .flatMap(exist -> {
+                                loan.setStateLoanId(1);
                                 return loanRepository.createLoan(loan);
                             });
                 });
+    }
+
+    public Flux<ListLoanUserDTO> getAllLoanRequestsForReview(String token, int page, int size) {
+        return loanRepository.findPendingForReview()
+                .switchIfEmpty(Mono.error(new ConflictException("NO EXISTEN REGISTROS AUN")))
+                .flatMap(petition -> Mono.zip(
+                        stateLoanRepository.getAllLoanState(petition.getStateLoanId()),
+                        typeLoanRepository.getAllLoanType(petition.getTypeLoanId()),
+                        userGateway.getAllUsers(token, petition.getEmailUser()),
+                        loanRepository.findApprovedByEmail(petition.getEmailUser()).collectList()
+                ).map(tuple -> {
+                    LoanState status = tuple.getT1();
+                    LoanType loanType = tuple.getT2();
+                    User user = tuple.getT3();
+                    List<Loan> approved = tuple.getT4();
+
+                    BigDecimal totalMonthlyDebt = approved.stream()
+                            .map(loanList -> loanList.getAmountLoan()
+                                    .divide(BigDecimal.valueOf(loanList.getTermLoan()), RoundingMode.HALF_UP))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return new ListLoanUserDTO(
+                            user.getName() + " " + user.getLastName(),
+                            user.getEmail(),
+                            user.getNumberDocument(),
+                            user.getBaseSalary(),
+                            loanType.getNameTypeLoan(),
+                            status.getStateName(),
+                            petition.getTermLoan(),
+                            petition.getAmountLoan(),
+                            approved.size(),
+                            totalMonthlyDebt
+                    );
+                }));
     }
 }
