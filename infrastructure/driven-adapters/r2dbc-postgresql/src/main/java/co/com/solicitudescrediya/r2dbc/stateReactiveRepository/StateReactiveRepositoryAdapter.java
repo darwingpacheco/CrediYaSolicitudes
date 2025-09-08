@@ -31,7 +31,7 @@ public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     @Transactional
-    public Mono<LoanState> getAllLoanState(int stateId) {
+    public Mono<LoanState> getLoanState(int stateId) {
         return this.repository.findById(stateId)
                 .map(this::toEntity);
     }

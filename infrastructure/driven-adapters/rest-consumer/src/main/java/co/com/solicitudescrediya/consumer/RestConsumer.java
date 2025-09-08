@@ -28,7 +28,7 @@ public class RestConsumer implements UserGateway {
     }
 
     @Override
-    public Mono<User> getAllUsers(String token, String email) {
+    public Mono<User> getUserByEmail(String token, String email) {
         return client.get()
         .uri("http://localhost:8081/api/v1/usuarios/all/{email}", email)
                 .header(HttpHeaders.AUTHORIZATION, token)

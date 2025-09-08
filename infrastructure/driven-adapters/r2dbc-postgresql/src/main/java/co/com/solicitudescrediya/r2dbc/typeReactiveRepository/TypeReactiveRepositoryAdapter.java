@@ -37,7 +37,7 @@ public class TypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Mono<LoanType> getAllLoanType(int idType) {
+    public Mono<LoanType> getLoanType(int idType) {
         return this.repository.findById(idType)
                 .map(this::toEntity);
     }

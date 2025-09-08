@@ -1,4 +1,4 @@
-package co.com.solicitudescrediya.model.loan;
+package co.com.solicitudescrediya.model.loan.reviewLoans;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,11 +17,7 @@ public class ListLoanUserDTO {
     private String email;
     private String numberDocument;
     private BigDecimal baseSalary;
-    private String typeLoan;
-    private String stateLoan;
-    private Integer term;
-    private BigDecimal monto;
 
-    private int totalElements;
-    private BigDecimal approvedOnes;
+    private List<LoanDetailDTO> loanRequests;
+    private BigDecimal totalMonthlyDebt;
 }

@@ -6,6 +6,6 @@ import reactor.core.publisher.Mono;
 public interface StateLoanRepository {
     Mono<LoanState> findByStateLoan(int stateLoanId);
 
-    Mono<LoanState> getAllLoanState(int state);
+    Mono<LoanState> getLoanState(int state);
 
 }

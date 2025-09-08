@@ -4,9 +4,7 @@ import co.com.solicitudescrediya.api.dto.LoanRequestDTO;
 import co.com.solicitudescrediya.api.globalExceptions.ValidateExceptionHandler;
 import co.com.solicitudescrediya.api.mapper.LoanMapperDTO;
 import co.com.solicitudescrediya.api.utils.ValidatorUtils;
-import co.com.solicitudescrediya.model.loan.ListLoanUserDTO;
 import co.com.solicitudescrediya.usecase.loan.LoanUseCase;
-import co.com.solicitudescrediya.usecase.loan.paginator.Paginator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -15,10 +13,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 @Slf4j
@@ -57,8 +51,7 @@ public class Handler {
         int size = Integer.parseInt(request.queryParam("size").orElse("10"));
         String token = request.headers().firstHeader("Authorization");
 
-        return loanUseCase.getAllLoanRequestsForReview(token, page, size)
-                .collectList()
+        return loanUseCase.getAllLoanRequestsGroupedByUser(token, page, size)
                 .flatMap(result -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(result));
