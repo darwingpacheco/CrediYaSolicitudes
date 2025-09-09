@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  db-loan:
+    image: postgres:15-alpine
+    container_name: crediyaSolicitudes-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1005076148
+      POSTGRES_DB: CrediYaSolicitudes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crediyaSolicitudes-app
+    depends_on:
+      - db-loan
+      - authentication-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+  authentication-app:
+    image: authentication:latest
+    container_name: authentication-app
+    depends_on:
+      - db-auth
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+
+  db-auth:
+    image: postgres:15-alpine
+    container_name: db-auth
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1005076148
+      POSTGRES_DB: createUserPragma
+    ports:
+      - "5433:5432"  # cambia para no chocar con db-loan
+    volumes:
+      - db-auth-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  db-auth-data:
+
+networks:
+  app-network:
+    driver: bridge

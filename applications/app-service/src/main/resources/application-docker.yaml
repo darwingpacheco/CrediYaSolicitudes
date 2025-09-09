@@ -1,0 +1,39 @@
+app:
+  ports:
+    - "8080:8080"
+
+spring:
+  application:
+    name: "CrediYaSolicitudes"
+  datasource:
+    url: jdbc:postgresql://db-loan:5432/CrediYaSolicitudes
+    username: postgres
+    password: 1005076148
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+adapter:
+  r2dbc-postgresql:
+    host: db-loan
+    port: 5432
+    database: CrediYaSolicitudes
+    schema: public
+    username: postgres
+    password: 1005076148
+
+  restconsumer:
+    timeout: 5000
+    url: http://authentication-app:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
