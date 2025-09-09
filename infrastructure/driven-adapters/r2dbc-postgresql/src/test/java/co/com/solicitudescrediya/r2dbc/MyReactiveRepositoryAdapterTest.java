@@ -46,54 +46,54 @@ class MyReactiveRepositoryAdapterTest {
     private LoanStateEntity loanStateEntity;
     private LoanTypeEntity loanTypeEntity;
 
-    @BeforeEach
-    void setUp() {
-        loan = new Loan(
-                1L,
-                "1234227890",
-                BigDecimal.valueOf(3_000_000),
-                12,
-                "cliente@ejemplo.com",
-                1,
-                1
-        );
-
-        loanEntity = new LoanEntity();
-        loanEntity.setId(1L);
-        loanEntity.setNumberDocumentUser("1234227890");
-        loanEntity.setAmountLoan(BigDecimal.valueOf(3_000_000));
-        loanEntity.setTermLoan(12);
-        loanEntity.setEmailUser("cliente@ejemplo.com");
-        loanEntity.setStateLoanId(1);
-        loanEntity.setTypeLoanId(1);
-
-        loanState = new LoanState(
-                1L,
-                "PENDIENTE",
-                "Pendiente de revisión"
-        );
-
-        loanStateEntity = new LoanStateEntity();
-        loanStateEntity.setId(1L);
-        loanStateEntity.setStateName("PENDIENTE");
-        loanStateEntity.setStateDescription("Pendiente de revisión");
-
-        loanType = new LoanType(
-                1L,
-                "Préstamo Personal",
-                BigDecimal.valueOf(1_000_000),
-                BigDecimal.valueOf(20_000_000),
-                BigDecimal.valueOf(2.5),
-                true
-        );
-
-        loanTypeEntity = new LoanTypeEntity();
-        loanTypeEntity.setId(1L);
-        loanTypeEntity.setNameTypeLoan("Préstamo Personal");
-        loanTypeEntity.setMinAmountLoan(BigDecimal.valueOf(1_000_000));
-        loanTypeEntity.setMaxAmountLoan(BigDecimal.valueOf(20_000_000));
-        loanTypeEntity.setInterestRateLoan(BigDecimal.valueOf(2.5));
-        loanTypeEntity.setAutomaticValidation(true);
-    }
+//    @BeforeEach
+//    void setUp() {
+//        loan = new Loan(
+//                1L,
+//                "1234227890",
+//                BigDecimal.valueOf(3_000_000),
+//                12,
+//                "cliente@ejemplo.com",
+//                1,
+//                1
+//        );
+//
+//        loanEntity = new LoanEntity();
+//        loanEntity.setId(1L);
+//        loanEntity.setNumberDocumentUser("1234227890");
+//        loanEntity.setAmountLoan(BigDecimal.valueOf(3_000_000));
+//        loanEntity.setTermLoan(12);
+//        loanEntity.setEmailUser("cliente@ejemplo.com");
+//        loanEntity.setStateLoanId(1);
+//        loanEntity.setTypeLoanId(1);
+//
+//        loanState = new LoanState(
+//                1L,
+//                "PENDIENTE",
+//                "Pendiente de revisión"
+//        );
+//
+//        loanStateEntity = new LoanStateEntity();
+//        loanStateEntity.setId(1L);
+//        loanStateEntity.setStateName("PENDIENTE");
+//        loanStateEntity.setStateDescription("Pendiente de revisión");
+//
+//        loanType = new LoanType(
+//                1L,
+//                "Préstamo Personal",
+//                BigDecimal.valueOf(1_000_000),
+//                BigDecimal.valueOf(20_000_000),
+//                BigDecimal.valueOf(2.5),
+//                true
+//        );
+//
+//        loanTypeEntity = new LoanTypeEntity();
+//        loanTypeEntity.setId(1L);
+//        loanTypeEntity.setNameTypeLoan("Préstamo Personal");
+//        loanTypeEntity.setMinAmountLoan(BigDecimal.valueOf(1_000_000));
+//        loanTypeEntity.setMaxAmountLoan(BigDecimal.valueOf(20_000_000));
+//        loanTypeEntity.setInterestRateLoan(BigDecimal.valueOf(2.5));
+//        loanTypeEntity.setAutomaticValidation(true);
+//    }
 
 }

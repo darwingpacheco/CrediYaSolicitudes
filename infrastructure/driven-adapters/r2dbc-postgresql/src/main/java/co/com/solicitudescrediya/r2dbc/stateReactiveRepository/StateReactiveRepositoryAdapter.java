@@ -7,9 +7,8 @@ import co.com.solicitudescrediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.function.Function;
 
 @Repository
 public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<
@@ -25,10 +24,15 @@ public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     @Transactional
-    public Mono<Boolean> findByLoanId(int stateLoanId) {
-        return this.repository.existsByIdAndName(stateLoanId)
-                    .map(this::toEntity)
-                    .map(loanId -> true)
-                    .defaultIfEmpty(false);
+    public Mono<LoanState> findByStateLoan(int stateLoanId) {
+        return this.repository.findByStateLoan(stateLoanId)
+                    .map(this::toEntity);
+    }
+
+    @Override
+    @Transactional
+    public Mono<LoanState> getLoanState(int stateId) {
+        return this.repository.findById(stateId)
+                .map(this::toEntity);
     }
 }

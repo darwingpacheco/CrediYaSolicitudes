@@ -50,6 +50,7 @@ public class RouterRest {
     })
 
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST("/api/v1/solicitudes"), handler::createLoan);
+        return route(POST("/api/v1/solicitudes"), handler::createLoan)
+                .andRoute(GET("/api/v1/solicitud"), handler::getAllLoanRequests);
     }
 }

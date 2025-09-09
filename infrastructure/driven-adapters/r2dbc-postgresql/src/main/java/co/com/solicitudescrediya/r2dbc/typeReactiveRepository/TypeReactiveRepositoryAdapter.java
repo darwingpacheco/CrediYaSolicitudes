@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 @Repository
 public class TypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         LoanType,
@@ -23,11 +25,21 @@ public class TypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     @Transactional
-    public Mono<Boolean> findByLoanType(int typeLoanId) {
+    public Mono<LoanType> findByLoanType(int typeLoanId) {
         return this.repository.existLoanTypeById(typeLoanId)
-                .map(this::toEntity)
-                .map(loanId -> true)
-                .defaultIfEmpty(false);
+                .map(this::toEntity);
+    }
+
+    @Override
+    public Mono<LoanType> findValueRange(int idType, BigDecimal amountLoan) {
+        return this.repository.validateRangeById(idType, amountLoan)
+                .map(this::toEntity);
+    }
+
+    @Override
+    public Mono<LoanType> getLoanType(int idType) {
+        return this.repository.findById(idType)
+                .map(this::toEntity);
     }
 }
 

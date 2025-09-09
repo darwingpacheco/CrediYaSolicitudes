@@ -10,5 +10,5 @@ public interface StateReactiveRepository extends ReactiveCrudRepository<LoanStat
     ReactiveQueryByExampleExecutor<LoanStateEntity> {
 
     @Query("SELECT * FROM estados WHERE id_estado = :stateLoanId AND nombre = 'PENDIENTE'")
-    Mono<LoanStateEntity> existsByIdAndName(int stateLoanId);
+    Mono<LoanStateEntity> findByStateLoan(int stateLoanId);
 }
