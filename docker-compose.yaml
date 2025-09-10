@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 1005076148
       POSTGRES_DB: CrediYaSolicitudes
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -18,13 +18,15 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: deployment/Dockerfile
     container_name: crediyaSolicitudes-app
     depends_on:
       - db-loan
       - authentication-app
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    extra_hosts:
+      - "localhost:host-gateway"
     ports:
       - "8080:8080"
     networks:
@@ -50,7 +52,7 @@ services:
       POSTGRES_PASSWORD: 1005076148
       POSTGRES_DB: createUserPragma
     ports:
-      - "5433:5432"  # cambia para no chocar con db-loan
+      - "5432:5432"
     volumes:
       - db-auth-data:/var/lib/postgresql/data
     networks:

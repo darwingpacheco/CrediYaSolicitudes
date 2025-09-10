@@ -26,9 +26,10 @@ adapter:
     schema: "public"
     username: "postgres"
     password: 1005076148
+
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8080"
+    url: "http://localhost:8081"
 management:
   endpoints:
     web:

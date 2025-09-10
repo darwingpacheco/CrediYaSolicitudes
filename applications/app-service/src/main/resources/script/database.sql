@@ -1,7 +1,5 @@
-DROP TABLE estados;
-DROP TABLE solicitud;
 
-CREATE TABLE estados (
+CREATE TABLE IF NOT EXISTS estados (
                          id_estado BIGSERIAL PRIMARY KEY,
                          nombre VARCHAR(100) NOT NULL,
                          descripcion VARCHAR(255)
@@ -14,7 +12,7 @@ VALUES
     (3, 'RECHAZADO', 'El préstamo fue rechazado')
 ON CONFLICT (id_estado) DO NOTHING;
 
-CREATE TABLE tipo_prestamo (
+CREATE TABLE IF NOT EXISTS tipo_prestamo (
                                id_tipo_prestamo BIGSERIAL PRIMARY KEY,
                                nombre VARCHAR(100) NOT NULL,
                                monto_minimo NUMERIC(15,2) NOT NULL,
@@ -37,7 +35,7 @@ INSERT INTO tipo_prestamo (
       (4, 'Préstamo de Libre Inversión', 2000000, 30000000, 0.20, TRUE)
 ON CONFLICT (id_tipo_prestamo) DO NOTHING;
 
-CREATE TABLE solicitud (
+CREATE TABLE IF NOT EXISTS solicitud (
                            id_solicitud BIGSERIAL PRIMARY KEY,
                            documento_identidad VARCHAR(255) NOT NULL,
                            monto NUMERIC(15,2) NOT NULL,

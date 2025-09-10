@@ -4,15 +4,22 @@ app:
 
 spring:
   application:
-    name: "CrediYaSolicitudes"
-  datasource:
-    url: jdbc:postgresql://db-loan:5432/CrediYaSolicitudes
+    name: CrediYaSolicitudes
+
+  r2dbc:
+    url: r2dbc:postgresql://db-auth:5432/CrediYaSolicitudes
     username: postgres
     password: 1005076148
-    driver-class-name: org.postgresql.Driver
+
+  sql:
+    init:
+      mode: always
+      platform: postgres
+      schema-locations: classpath:script/database.sql
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 adapter:
