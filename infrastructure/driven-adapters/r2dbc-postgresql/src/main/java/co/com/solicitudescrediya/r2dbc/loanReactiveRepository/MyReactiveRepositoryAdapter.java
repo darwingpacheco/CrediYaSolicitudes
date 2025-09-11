@@ -50,6 +50,9 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                     .filter(allowedStatuses::contains)
                     .toList();
         }
+        if (filteredStatuses.isEmpty()) {
+            return Flux.empty();
+        }
         return repository.findByEstados(filteredStatuses)
                 .map(this::toEntity);
     }
