@@ -14,6 +14,9 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.List;
+
 
 @Slf4j
 @Component
@@ -47,11 +50,17 @@ public class Handler {
     }
 
     public Mono<ServerResponse> getAllLoanRequests(ServerRequest request) {
+        String statusParam = request.queryParam("status").orElse("");
+        List<String> requestedStatuses = Arrays.stream(statusParam.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
         int page = Integer.parseInt(request.queryParam("page").orElse("0"));
         int size = Integer.parseInt(request.queryParam("size").orElse("10"));
         String token = request.headers().firstHeader("Authorization");
 
-        return loanUseCase.getAllLoanRequestsGroupedByUser(token, page, size)
+        return loanUseCase.getAllLoanRequestsGroupedByUser(requestedStatuses, token, page, size)
                 .flatMap(result -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(result));

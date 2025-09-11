@@ -21,7 +21,7 @@ spring:
 adapter:
   r2dbc-postgresql:
     host: "localhost"
-    port: 5433
+    port: 5432
     database: "CrediYaSolicitudes"
     schema: "public"
     username: "postgres"
@@ -70,3 +70,4 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+

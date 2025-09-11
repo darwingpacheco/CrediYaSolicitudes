@@ -7,6 +7,8 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 // TODO: This file is just an example, you should delete or modify it
 public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity, Integer>, ReactiveQueryByExampleExecutor<LoanEntity> {
 
@@ -18,9 +20,9 @@ public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity,
     FROM solicitud s
     JOIN estados e ON s.id_estado = e.id_estado
     JOIN tipo_prestamo t ON s.id_tipo_prestamo = t.id_tipo_prestamo
-    WHERE e.nombre <> 'APROBADO'
+    WHERE e.nombre IN (:stateUser)
     """)
-    Flux<LoanEntity> findByEstados();
+    Flux<LoanEntity> findByEstados(List<String> stateUser);
 
     @Query("""
         SELECT s.*

@@ -4,10 +4,12 @@ import co.com.solicitudescrediya.model.loan.Loan;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface LoanRepository {
     Mono<Loan> createLoan(Loan loan);
 
-    Flux<Loan> findPendingForReview();
+    Flux<Loan> findPendingForReview(List<String> stateUser);
 
     Flux<Loan>  findApprovedByEmail(String emailUser);
 }
