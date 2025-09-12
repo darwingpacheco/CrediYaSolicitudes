@@ -22,7 +22,7 @@ public class RestConsumer implements UserGateway {
     public Mono<UserCheckResponse> existUserByEmail(String emailUser, String token) {
         return client.get()
                 .uri("http://localhost:8081/api/v1/usuarios/email/{email}", emailUser)
-                .header(HttpHeaders.AUTHORIZATION,token)
+                .header(HttpHeaders.AUTHORIZATION, token)
                 .exchangeToMono(response ->
                         response.bodyToMono(Map.class)
                                 .defaultIfEmpty(Map.of())

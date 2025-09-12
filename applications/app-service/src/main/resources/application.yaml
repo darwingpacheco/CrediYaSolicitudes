@@ -21,15 +21,18 @@ spring:
 adapter:
   r2dbc-postgresql:
     host: "localhost"
-    port: 5432
+    port: 5433
     database: "CrediYaSolicitudes"
     schema: "public"
     username: "postgres"
     password: 1005076148
-
   restconsumer:
     timeout: 5000
     url: "http://localhost:8081"
+  sqs:
+    region: "us-east-1"
+    queueUrl: "http://localhost:4566/000000000000/sample"
+    endpoint: "http://localhost:4566"
 management:
   endpoints:
     web:

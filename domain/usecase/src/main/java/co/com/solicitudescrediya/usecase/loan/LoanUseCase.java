@@ -39,7 +39,7 @@ public class LoanUseCase {
                 .then(Mono.defer(() -> loanRepository.createLoan(loan)));
     }
 
-    private Mono<Void> validateUser(String email, String token) {
+    public Mono<Void> validateUser(String email, String token) {
         return userGateway.existUserByEmail(email, token)
                 .switchIfEmpty(Mono.error(new ConflictException(USER_NOT_FOUND)))
                 .flatMap(resp -> resp.statusCode() == 200
@@ -47,19 +47,19 @@ public class LoanUseCase {
                         : Mono.error(new ConflictException(resp.body())));
     }
 
-    private Mono<Void> validateStateLoan(int stateId) {
+    public Mono<Void> validateStateLoan(int stateId) {
         return stateLoanRepository.findByStateLoan(stateId)
                 .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
                 .then();
     }
 
-    private Mono<Void> validateLoanType(int typeId) {
+    public Mono<Void> validateLoanType(int typeId) {
         return typeLoanRepository.findByLoanType(typeId)
                 .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
                 .then();
     }
 
-    private Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
+    public Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
         return typeLoanRepository.findValueRange(typeId, amount)
                 .switchIfEmpty(Mono.error(new ConflictException(AMOUNT_NOT_RANGE)))
                 .then();

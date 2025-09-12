@@ -12,4 +12,8 @@ public interface LoanRepository {
     Flux<Loan> findPendingForReview(List<String> stateUser);
 
     Flux<Loan>  findApprovedByEmail(String emailUser);
+
+    Mono<Loan> findBySolicitudedId(int approvedId);
+
+    Mono<Loan> updateStatus(int idState, int idApproved);
 }

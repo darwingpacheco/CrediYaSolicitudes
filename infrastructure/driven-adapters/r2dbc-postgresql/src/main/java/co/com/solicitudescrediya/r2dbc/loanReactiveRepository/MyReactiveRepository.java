@@ -1,5 +1,6 @@
 package co.com.solicitudescrediya.r2dbc.loanReactiveRepository;
 
+import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.r2dbc.entities.LoanEntity;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -31,4 +32,17 @@ public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity,
         WHERE s.email = :email AND e.nombre = 'APROBADO'
     """)
     Flux<LoanEntity> findApprovedByEmail(String email);
+
+    @Query("""
+        UPDATE solicitud
+        SET id_estado =: idState
+        WHERE id = :idApproved
+    """)
+    Mono<Loan> updateStateByApprovedId(int idState, int idApproved);
+
+    @Query("""
+        SELECT *
+        FROM solicitud WHERE id_solicitud = :idApproved
+    """)
+    Mono<Loan> findBySolicitudeId(int idApproved);
 }
