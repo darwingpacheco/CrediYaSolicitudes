@@ -55,6 +55,7 @@ class LoanUseCaseTest {
     private LoanType loanType;
     private User user;
     private final String token = "mock-token";
+    private List<String> allowedStatuses;
 
     @BeforeEach
     void setUp() {
@@ -94,6 +95,13 @@ class LoanUseCaseTest {
                 "abrego",
                 1,
                 BigDecimal.valueOf(5_000_000));
+
+        allowedStatuses = List.of(
+                "PENDIENTE",
+                "RECHAZADO",
+                "REVISION_MANUAL"
+        );
+
     }
 
     @Test
@@ -184,13 +192,13 @@ class LoanUseCaseTest {
                 BigDecimal.valueOf(2_400_000), 12,
                 "cliente@ejemplo.com", 2, 1);
 
-        when(loanRepository.findPendingForReview()).thenReturn(Flux.just(loan));
+        when(loanRepository.findPendingForReview(allowedStatuses)).thenReturn(Flux.just(loan));
         when(userGateway.getUserByEmail(token, loan.getEmailUser())).thenReturn(Mono.just(user));
         when(stateLoanRepository.getLoanState(loan.getStateLoanId())).thenReturn(Mono.just(loanState));
         when(typeLoanRepository.getLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(loanType));
         when(loanRepository.findApprovedByEmail(loan.getEmailUser())).thenReturn(Flux.just(approvedLoan));
 
-        StepVerifier.create(loanUseCase.getAllLoanRequestsGroupedByUser(token, 0, 10))
+        StepVerifier.create(loanUseCase.getAllLoanRequestsGroupedByUser(allowedStatuses, token, 0, 10))
                 .assertNext(paginator -> {
                     assertEquals(1, paginator.getContent().size());
                     ListLoanUserDTO dto = paginator.getContent().get(0);
@@ -208,9 +216,9 @@ class LoanUseCaseTest {
 
     @Test
     void getAllLoanRequestsGroupedByUser_empty() {
-        when(loanRepository.findPendingForReview()).thenReturn(Flux.empty());
+        when(loanRepository.findPendingForReview(allowedStatuses)).thenReturn(Flux.empty());
 
-        StepVerifier.create(loanUseCase.getAllLoanRequestsGroupedByUser(token, 0, 10))
+        StepVerifier.create(loanUseCase.getAllLoanRequestsGroupedByUser(allowedStatuses, token, 0, 10))
                 .expectErrorMatches(e -> e instanceof ConflictException &&
                         e.getMessage().equals(REGIST_NOT_EXIST))
                 .verify();

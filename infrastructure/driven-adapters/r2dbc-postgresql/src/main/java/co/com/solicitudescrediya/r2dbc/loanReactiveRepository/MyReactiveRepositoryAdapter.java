@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         Loan,
@@ -31,8 +33,27 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Flux<Loan> findPendingForReview() {
-        return repository.findByEstados()
+    public Flux<Loan> findPendingForReview(List<String> stateUser) {
+
+        List<String> allowedStatuses = List.of(
+                "PENDIENTE",
+                "RECHAZADO",
+                "REVISION_MANUAL"
+        );
+
+        List<String> filteredStatuses;
+
+        if (stateUser == null || stateUser.isEmpty())
+            filteredStatuses = allowedStatuses;
+        else {
+            filteredStatuses = stateUser.stream()
+                    .filter(allowedStatuses::contains)
+                    .toList();
+        }
+        if (filteredStatuses.isEmpty()) {
+            return Flux.empty();
+        }
+        return repository.findByEstados(filteredStatuses)
                 .map(this::toEntity);
     }
 

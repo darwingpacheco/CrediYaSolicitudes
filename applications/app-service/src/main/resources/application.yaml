@@ -21,14 +21,15 @@ spring:
 adapter:
   r2dbc-postgresql:
     host: "localhost"
-    port: 5433
+    port: 5432
     database: "CrediYaSolicitudes"
     schema: "public"
     username: "postgres"
     password: 1005076148
+
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8080"
+    url: "http://localhost:8081"
 management:
   endpoints:
     web:
@@ -69,3 +70,4 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+

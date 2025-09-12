@@ -1,0 +1,6 @@
+out/
+.idea/
+.vscode/
+*.iml
+*.log
+.git

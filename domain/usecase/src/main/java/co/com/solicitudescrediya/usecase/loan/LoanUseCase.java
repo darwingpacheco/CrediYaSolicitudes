@@ -29,28 +29,44 @@ public class LoanUseCase {
     private final UserGateway userGateway;
 
     public Mono<Loan> createLoan(Loan loan, String token) {
+        loan.setStateLoanId(1);
         String emailUser = loan.getEmailUser();
-        return userGateway.existUserByEmail(emailUser, token)
-                .flatMap(userResponse -> {
 
-                    if (userResponse.statusCode() != 200)
-                        return Mono.error(new ConflictException(userResponse.body()));
-
-                    return stateLoanRepository.findByStateLoan(loan.getStateLoanId())
-                            .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
-                            .flatMap(loanType -> typeLoanRepository.findByLoanType(loan.getTypeLoanId()))
-                            .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
-                            .flatMap(amountType -> typeLoanRepository.findValueRange(amountType.getId(), loan.getAmountLoan()))
-                            .switchIfEmpty(Mono.error(new ConflictException(AMOUNT_NOT_RANGE)))
-                            .flatMap(exist -> {
-                                loan.setStateLoanId(1);
-                                return loanRepository.createLoan(loan);
-                            });
-                });
+        return validateUser(emailUser, token)
+                .then(Mono.defer(() -> validateStateLoan(loan.getStateLoanId())))
+                .then(Mono.defer(() -> validateLoanType(loan.getTypeLoanId())))
+                .then(Mono.defer(() -> validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan())))
+                .then(Mono.defer(() -> loanRepository.createLoan(loan)));
     }
 
-    public Mono<Paginator<ListLoanUserDTO>> getAllLoanRequestsGroupedByUser(String token, int page, int size) {
-        return loanRepository.findPendingForReview()
+    private Mono<Void> validateUser(String email, String token) {
+        return userGateway.existUserByEmail(email, token)
+                .switchIfEmpty(Mono.error(new ConflictException(USER_NOT_FOUND)))
+                .flatMap(resp -> resp.statusCode() == 200
+                        ? Mono.empty()
+                        : Mono.error(new ConflictException(resp.body())));
+    }
+
+    private Mono<Void> validateStateLoan(int stateId) {
+        return stateLoanRepository.findByStateLoan(stateId)
+                .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
+                .then();
+    }
+
+    private Mono<Void> validateLoanType(int typeId) {
+        return typeLoanRepository.findByLoanType(typeId)
+                .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
+                .then();
+    }
+
+    private Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
+        return typeLoanRepository.findValueRange(typeId, amount)
+                .switchIfEmpty(Mono.error(new ConflictException(AMOUNT_NOT_RANGE)))
+                .then();
+    }
+
+    public Mono<Paginator<ListLoanUserDTO>> getAllLoanRequestsGroupedByUser(List<String> stateUser, String token, int page, int size) {
+        return loanRepository.findPendingForReview(stateUser)
                 .switchIfEmpty(Mono.error(new ConflictException(REGIST_NOT_EXIST)))
                 .groupBy(Loan::getEmailUser)
                 .flatMap(groupedEmail ->
