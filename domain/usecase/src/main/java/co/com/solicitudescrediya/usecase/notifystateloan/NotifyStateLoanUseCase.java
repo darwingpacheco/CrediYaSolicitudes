@@ -47,7 +47,7 @@ public class NotifyStateLoanUseCase {
         return Mono.zip(
                 typeLoanRepository.findByLoanType(loan.getTypeLoanId())
                         .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN))),
-                stateLoanRepository.findByStateLoan(loan.getStateLoanId())
+                stateLoanRepository.findByStateToUpdate(loan.getStateLoanId())
                         .switchIfEmpty(Mono.error(new ConflictException(STATE_NOT_EXIST)))
         ).map(tuple -> {
             LoanType loanType = tuple.getT1();

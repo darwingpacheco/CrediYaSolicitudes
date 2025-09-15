@@ -19,6 +19,7 @@ public class SQSSender {
 
     public Mono<String> publish(Object event, String queueUrl) {
         return Mono.fromCallable(() -> objectMapper.writeValueAsString(event))
+                .doOnNext(json -> log.info("Preparando para enviar a SQS. URL de la cola: {}, Cuerpo del mensaje: {}", queueUrl, json))
                 .flatMap(json -> Mono.fromFuture(
                         client.sendMessage(SendMessageRequest.builder()
                                 .queueUrl(queueUrl)
@@ -26,7 +27,7 @@ public class SQSSender {
                                 .build())
                 ))
                 .map(SendMessageResponse::messageId)
-                .doOnNext(id -> log.info("Event {} published to {} messageId={}",
-                        event.getClass().getSimpleName(), queueUrl, id));
+                .doOnSuccess(id -> log.info("Evento publicado a SQS con éxito. URL de la cola: {}, ID del mensaje: {}", queueUrl, id))
+                .doOnError(error -> log.error("Error al publicar a SQS. URL de la cola: {}, Error: {}", queueUrl, error.getMessage(), error));
     }
 }

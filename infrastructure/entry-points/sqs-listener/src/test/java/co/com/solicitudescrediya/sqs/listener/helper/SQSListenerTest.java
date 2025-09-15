@@ -34,7 +34,7 @@ class SQSListenerTest {
         MockitoAnnotations.openMocks(this);
 
         var sqsProperties = new SQSProperties(
-                "us-east-1",
+                "us-east-2",
                 "http://localhost:4566",
                 "http://localhost:4566/00000000000/queueName",
                 20,

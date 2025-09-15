@@ -107,7 +107,7 @@ class LoanUseCaseTest {
     @Test
     void emailNotExistInUser() {
         var mockResponse = new UserCheckResponse(404, "Usuario no encontrado");
-        when(userGateway.existUserByEmail(loan.getEmailUser(), token))
+        when(userGateway.existUserByEmail("", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
 
         StepVerifier.create(loanUseCase.createLoan(loan, token))
@@ -115,13 +115,13 @@ class LoanUseCaseTest {
                         e.getMessage().equals("Usuario no encontrado"))
                 .verify();
 
-        verify(userGateway).existUserByEmail(loan.getEmailUser(), token);
+        verify(userGateway).existUserByEmail("", loan.getEmailUser(), token);
     }
 
     @Test
     void stateInLoanNotExist() {
         var mockResponse = new UserCheckResponse(200, "OK");
-        when(userGateway.existUserByEmail(loan.getEmailUser(), token))
+        when(userGateway.existUserByEmail("", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.empty());
@@ -135,7 +135,7 @@ class LoanUseCaseTest {
     @Test
     void typeLoanNotExist() {
         var mockResponse = new UserCheckResponse(200, "OK");
-        when(userGateway.existUserByEmail(loan.getEmailUser(), token))
+        when(userGateway.existUserByEmail("", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.just(loanState));
@@ -151,7 +151,7 @@ class LoanUseCaseTest {
     @Test
     void amountNotInRange() {
         var mockResponse = new UserCheckResponse(200, "OK");
-        when(userGateway.existUserByEmail(loan.getEmailUser(), token))
+        when(userGateway.existUserByEmail("", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.just(loanState));
@@ -169,7 +169,7 @@ class LoanUseCaseTest {
     @Test
     void successCreateLoan() {
         var mockResponse = new UserCheckResponse(200, "OK");
-        when(userGateway.existUserByEmail(loan.getEmailUser(), token))
+        when(userGateway.existUserByEmail("", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.just(loanState));
