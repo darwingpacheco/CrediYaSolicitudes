@@ -32,15 +32,15 @@ public class LoanUseCase {
         loan.setStateLoanId(1);
         String emailUser = loan.getEmailUser();
 
-        return validateUser(emailUser, token)
+        return validateUser("create", emailUser, token)
                 .then(Mono.defer(() -> validateStateLoan(loan.getStateLoanId())))
                 .then(Mono.defer(() -> validateLoanType(loan.getTypeLoanId())))
                 .then(Mono.defer(() -> validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan())))
                 .then(Mono.defer(() -> loanRepository.createLoan(loan)));
     }
 
-    public Mono<Void> validateUser(String email, String token) {
-        return userGateway.existUserByEmail(email, token)
+    public Mono<Void> validateUser(String identifyUrl, String email, String token) {
+        return userGateway.existUserByEmail(identifyUrl, email, token)
                 .switchIfEmpty(Mono.error(new ConflictException(USER_NOT_FOUND)))
                 .flatMap(resp -> resp.statusCode() == 200
                         ? Mono.empty()

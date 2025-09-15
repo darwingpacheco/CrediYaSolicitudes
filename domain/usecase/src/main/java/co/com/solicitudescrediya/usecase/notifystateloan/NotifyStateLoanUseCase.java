@@ -28,12 +28,13 @@ public class NotifyStateLoanUseCase {
         return loanRepository.findBySolicitudedId(changeStateLoan.getIdApplication())
                 .switchIfEmpty(Mono.error(new ConflictException(USER_NOT_FOUND)))
                 .flatMap(loanValid ->
-                        loanUseCase.validateUser(loanValid.getEmailUser(), token)
-                                .then(loanUseCase.validateStateLoan(changeStateLoan.getIdState()))
-                                .then(loanRepository.updateStatus(changeStateLoan.getIdState(), changeStateLoan.getIdApplication()))
+                        loanUseCase.validateUser("updateLoan", loanValid.getEmailUser(), token)
+                                .then(Mono.defer(() -> validateStateUpdate(changeStateLoan.getIdState())))
+                                .then(Mono.defer(() -> loanRepository.updateStatus(changeStateLoan.getIdState(), changeStateLoan.getIdApplication())))
                 )
                 .flatMap(loanApproved -> sendEmailNotification(loanApproved)
                         .flatMap(emailNotification -> publishToSQS(emailNotification, loanApproved))
+                        .thenReturn(loanApproved)
                 );
     }
 
@@ -76,4 +77,11 @@ public class NotifyStateLoanUseCase {
                     "Su solicitud de " + typeLoanName + " ha cambiado de estado, por favor acercate pronto a la oficina mas cercana.";
         };
     }
+
+    public Mono<Void> validateStateUpdate(int stateId) {
+        return stateLoanRepository.findByStateToUpdate(stateId)
+                .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
+                .then();
+    }
+
 }

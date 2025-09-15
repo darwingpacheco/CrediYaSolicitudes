@@ -19,9 +19,9 @@ public class RestConsumer implements UserGateway {
 
     private final WebClient client;
 
-    public Mono<UserCheckResponse> existUserByEmail(String emailUser, String token) {
+    public Mono<UserCheckResponse> existUserByEmail(String identifyUrl, String emailUser, String token) {
         return client.get()
-                .uri("http://localhost:8081/api/v1/usuarios/email/{email}", emailUser)
+                .uri("http://localhost:8081/api/v1/usuarios/{identifyUrl}/email/{email}", identifyUrl,  emailUser)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .exchangeToMono(response ->
                         response.bodyToMono(Map.class)

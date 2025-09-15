@@ -36,7 +36,8 @@ public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity,
     @Query("""
         UPDATE solicitud
         SET id_estado =: idState
-        WHERE id = :idApproved
+        WHERE id_solicitud = :idApproved
+        RETURNING *
     """)
     Mono<Loan> updateStateByApprovedId(int idState, int idApproved);
 

@@ -7,7 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 import reactor.core.publisher.Mono;
 
 public interface UserGateway {
-    Mono<UserCheckResponse> existUserByEmail(String emailUser, String token);
+    Mono<UserCheckResponse> existUserByEmail(String identifyUrl, String emailUser, String token);
 
     Mono<User> getUserByEmail(String token, String email);
 }
