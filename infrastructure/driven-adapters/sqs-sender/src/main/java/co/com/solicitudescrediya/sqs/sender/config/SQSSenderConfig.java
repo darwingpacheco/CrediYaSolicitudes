@@ -18,7 +18,21 @@ public class SQSSenderConfig {
     public SqsAsyncClient configSqs(SQSSenderProperties properties, MetricPublisher publisher) {
         return SqsAsyncClient.builder()
                 .region(Region.of(properties.region()))
-                .credentialsProvider(getProviderChain())
+                .overrideConfiguration(o -> o.addMetricPublisher(publisher))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        properties.accessKey(),
+                                        properties.secretKey()
+                                )
+                        )
+                )
+                // 👇 Usa el endpoint configurado si existe
+                .applyMutation(b -> {
+                    if (properties.endpoint() != null && !properties.endpoint().isBlank()) {
+                        b.endpointOverride(URI.create(properties.endpoint()));
+                    }
+                })
                 .build();
     }
 

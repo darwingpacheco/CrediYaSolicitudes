@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @Data
 @Builder
 public class LoanDetailDTO {
-    private long id;
     private String loanType;
     private String loanState;
     private int termLoan;
