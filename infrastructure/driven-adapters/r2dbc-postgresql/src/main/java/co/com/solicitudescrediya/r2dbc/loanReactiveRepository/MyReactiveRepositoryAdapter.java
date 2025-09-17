@@ -47,13 +47,9 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         if (stateUser == null || stateUser.isEmpty())
             filteredStatuses = allowedStatuses;
         else {
-            filteredStatuses = stateUser.stream()
-                    .filter(allowedStatuses::contains)
-                    .toList();
+            filteredStatuses = stateUser;
         }
-        if (filteredStatuses.isEmpty()) {
-            return Flux.empty();
-        }
+
         return repository.findByEstados(filteredStatuses)
                 .map(this::toEntity);
     }
