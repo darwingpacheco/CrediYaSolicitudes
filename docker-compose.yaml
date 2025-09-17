@@ -24,7 +24,9 @@ services:
       - db-loan
       - authentication-app
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      - SPRING_PROFILES_ACTIVE=docker
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
     extra_hosts:
       - "localhost:host-gateway"
     ports:

@@ -35,6 +35,11 @@ adapter:
     timeout: 5000
     url: http://authentication-app:8081
 
+  sqs:
+    region: "us-east-2"
+    queues:
+      loan-application-state-changed: "https://sqs.us-east-2.amazonaws.com/551647579158/queue-loan"
+
 management:
   endpoints:
     web:

@@ -82,6 +82,7 @@ public class LoanUseCase {
                                                     stateLoanRepository.getLoanState(petition.getStateLoanId()),
                                                     typeLoanRepository.getLoanType(petition.getTypeLoanId())
                                             ).map(tuple -> new LoanDetailDTO(
+                                                    petition.getId(),
                                                     tuple.getT2().getNameTypeLoan(),
                                                     tuple.getT1().getStateName(),
                                                     petition.getTermLoan(),
