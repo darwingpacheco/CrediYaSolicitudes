@@ -21,19 +21,26 @@ public class RestConsumer implements UserGateway {
 
     public Mono<UserCheckResponse> existUserByEmail(String identifyUrl, String emailUser, String token) {
         return client.get()
-                .uri("http://localhost:8081/api/v1/usuarios/{identifyUrl}/email/{email}", identifyUrl,  emailUser)
+                .uri("http://localhost:8081/api/v1/usuarios/{identifyUrl}/email/{email}", identifyUrl, emailUser)
                 .header(HttpHeaders.AUTHORIZATION, token)
-                .exchangeToMono(response ->
-                        response.bodyToMono(Map.class)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(Map.class)
                                 .defaultIfEmpty(Map.of())
-                                .map(body -> new UserCheckResponse(response.statusCode().value(), (String) body.getOrDefault("message", "")))
-                );
+                                .map(body -> new UserCheckResponse(response.statusCode().value(),
+                                        (String) body.getOrDefault("message", "")));
+                    } else {
+                        return response.bodyToMono(String.class)
+                                .defaultIfEmpty("")
+                                .map(body -> new UserCheckResponse(response.statusCode().value(), body));
+                    }
+                });
     }
 
     @Override
-    public Mono<User> getUserByEmail(String token, String email) {
+    public Mono<User> getUserByEmail(String token, String email, String identifyUrl) {
         return client.get()
-                .uri("http://localhost:8081/api/v1/usuarios/all/{email}", email)
+                .uri("http://localhost:8081/api/v1/usuarios/{identifyUrl}/{email}",identifyUrl, email)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {

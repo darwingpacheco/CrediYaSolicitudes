@@ -1,10 +1,11 @@
 package co.com.solicitudescrediya.r2dbc.loanReactiveRepository;
 
+import co.com.solicitudescrediya.model.loan.ApprovedLoansAutoValidation;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
-import co.com.solicitudescrediya.model.notification.ChangeStateLoan;
 import co.com.solicitudescrediya.r2dbc.entities.LoanEntity;
 import co.com.solicitudescrediya.r2dbc.helper.ReactiveAdapterOperations;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Repository
 public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         Loan,
@@ -69,5 +71,20 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     public Mono<Loan> updateStatus(int idState, int idApproved) {
         return repository.updateStateByApprovedId(idState, idApproved)
                 .map(this::toEntity);
+    }
+
+    @Override
+    public Mono<List<ApprovedLoansAutoValidation>> findApprovedByNumberDoc(String numberDocumentUser) {
+        return repository.findApprovedLoansByNumDoc(numberDocumentUser)
+                .doOnSubscribe(s -> log.info("Consultando préstamos aprobados número documento={} con id_estado=2", numberDocumentUser))
+                .doOnNext(dto -> log.debug("Fila aprobada -> monto={}, plazo={}, tasaInteres={}", dto.getAmountLoan(), dto.getTermLoan(), dto.getInterestRateLoan()))
+                .map(dto -> ApprovedLoansAutoValidation.builder()
+                        .amountLoan(dto.getAmountLoan())
+                        .termLoan(dto.getTermLoan())
+                        .interestRateLoan(dto.getInterestRateLoan())
+                        .build())
+                .collectList()
+                .doOnNext(list -> log.info("Total préstamos aprobados encontrados para {}: {}", numberDocumentUser, list.size()))
+                .doOnError(e -> log.error("Error consultando aprobados para {}: {}", numberDocumentUser, e.getMessage()));
     }
 }

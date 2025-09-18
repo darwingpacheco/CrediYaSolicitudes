@@ -193,7 +193,7 @@ class LoanUseCaseTest {
                 "cliente@ejemplo.com", 2, 1);
 
         when(loanRepository.findPendingForReview(allowedStatuses)).thenReturn(Flux.just(loan));
-        when(userGateway.getUserByEmail(token, loan.getEmailUser())).thenReturn(Mono.just(user));
+        when(userGateway.getUserByEmail(token, loan.getEmailUser(), "")).thenReturn(Mono.just(user));
         when(stateLoanRepository.getLoanState(loan.getStateLoanId())).thenReturn(Mono.just(loanState));
         when(typeLoanRepository.getLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(loanType));
         when(loanRepository.findApprovedByEmail(loan.getEmailUser())).thenReturn(Flux.just(approvedLoan));

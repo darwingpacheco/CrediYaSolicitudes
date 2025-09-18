@@ -21,7 +21,7 @@ spring:
 adapter:
   r2dbc-postgresql:
     host: "localhost"
-    port: 5432
+    port: 5433
     database: "CrediYaSolicitudes"
     schema: "public"
     username: "postgres"
@@ -34,6 +34,7 @@ adapter:
     region: "us-east-2"
     queues:
       loan-application-state-changed: "https://sqs.us-east-2.amazonaws.com/551647579158/queue-loan"
+      auto-validate-loan: "https://sqs.us-east-2.amazonaws.com/551647579158/auto-validate-sqs"
 
 management:
   endpoints:

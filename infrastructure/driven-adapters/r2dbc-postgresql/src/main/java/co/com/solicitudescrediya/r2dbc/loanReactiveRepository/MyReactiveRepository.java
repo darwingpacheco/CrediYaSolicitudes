@@ -1,6 +1,7 @@
 package co.com.solicitudescrediya.r2dbc.loanReactiveRepository;
 
 import co.com.solicitudescrediya.model.loan.Loan;
+import co.com.solicitudescrediya.r2dbc.entities.ApprovedLoanDTO;
 import co.com.solicitudescrediya.r2dbc.entities.LoanEntity;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,4 +49,13 @@ public interface MyReactiveRepository extends ReactiveCrudRepository<LoanEntity,
                 FROM solicitud WHERE id_solicitud = :idApproved
             """)
     Mono<Loan> findBySolicitudeId(int idApproved);
+
+    @Query("""
+        SELECT s.monto, s.plazo, lt.tasa_interes
+        FROM solicitud s
+        INNER JOIN tipo_prestamo lt ON lt.id_tipo_prestamo = s.id_tipo_prestamo
+        WHERE s.documento_identidad =:numDoc AND s.id_estado = 2
+        ORDER BY s.id_solicitud ASC
+    """)
+    Flux<ApprovedLoanDTO> findApprovedLoansByNumDoc(@Param("documento_identidad") String numDoc);
 }
