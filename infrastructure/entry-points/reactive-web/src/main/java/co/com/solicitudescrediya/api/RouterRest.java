@@ -1,5 +1,6 @@
 package co.com.solicitudescrediya.api;
 
+import co.com.solicitudescrediya.api.dto.ChangeStateLoanDTO;
 import co.com.solicitudescrediya.api.dto.LoanRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -123,6 +124,86 @@ public class RouterRest {
                                                             "    \"error\": \"Conflict\",\n" +
                                                             "    \"message\": \"Token no valido\",\n" +
                                                             "    \"status\": 409\n" +
+                                                            "}")
+                                            )
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/review/solicitud",
+                    produces = {"application/json"},
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "updateStateLoanAndNotify",
+                    operation = @Operation(
+                            operationId = "updateStateLoanAndNotify",
+                            summary = "Actualizar estado del préstamo y notificar",
+                            description = "Permite actualizar el estado de una solicitud de préstamo existente. " +
+                                    "Después de actualizar, se enviará una notificación por correo electrónico " +
+                                    "y el evento también será publicado en una cola SQS para su posterior procesamiento.",
+                            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                                    required = true,
+                                    description = "Objeto con el nuevo estado del préstamo y el ID de la solicitud",
+                                    content = @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ChangeStateLoanDTO.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Estado del préstamo actualizado correctamente y notificación enviada",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(example = "{\n" +
+                                                            "  \"idApplication\": 123,\n" +
+                                                            "  \"newState\": \"APROBADO\",\n" +
+                                                            "  \"message\": \"El estado del préstamo ha sido actualizado con éxito\"\n" +
+                                                            "}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Solicitud inválida (datos incompletos o formato incorrecto)",
+                                            content = @Content(
+                                                    schema = @Schema(example = "{\n" +
+                                                            "  \"error\": \"Bad Request\",\n" +
+                                                            "  \"message\": \"El campo idApplication es obligatorio\",\n" +
+                                                            "  \"status\": 400\n" +
+                                                            "}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "403",
+                                            description = "No tiene permisos para acceder a este recurso",
+                                            content = @Content(
+                                                    schema = @Schema(example = "{\n" +
+                                                            "  \"error\": \"Forbidden\",\n" +
+                                                            "  \"message\": \"No tiene permisos para acceder a este recurso\",\n" +
+                                                            "  \"status\": 403\n" +
+                                                            "}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "409",
+                                            description = "Conflicto (ejemplo: usuario no coincide con token, estado no válido o solicitud inexistente)",
+                                            content = @Content(
+                                                    schema = @Schema(example = "{\n" +
+                                                            "  \"error\": \"Conflict\",\n" +
+                                                            "  \"message\": \"El usuario no existe o no se puede actualizar el estado del préstamo\",\n" +
+                                                            "  \"status\": 409\n" +
+                                                            "}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno en el servidor",
+                                            content = @Content(
+                                                    schema = @Schema(example = "{\n" +
+                                                            "  \"error\": \"Internal Server Error\",\n" +
+                                                            "  \"message\": \"Ocurrió un error inesperado al actualizar el préstamo\",\n" +
+                                                            "  \"status\": 500\n" +
                                                             "}")
                                             )
                                     )
