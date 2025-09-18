@@ -32,34 +32,34 @@ public class LoanUseCase {
         loan.setStateLoanId(1);
         String emailUser = loan.getEmailUser();
 
-        return validateUser(emailUser, token)
+        return validateUser("create", emailUser, token)
                 .then(Mono.defer(() -> validateStateLoan(loan.getStateLoanId())))
                 .then(Mono.defer(() -> validateLoanType(loan.getTypeLoanId())))
                 .then(Mono.defer(() -> validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan())))
                 .then(Mono.defer(() -> loanRepository.createLoan(loan)));
     }
 
-    private Mono<Void> validateUser(String email, String token) {
-        return userGateway.existUserByEmail(email, token)
+    public Mono<Void> validateUser(String identifyUrl, String email, String token) {
+        return userGateway.existUserByEmail(identifyUrl, email, token)
                 .switchIfEmpty(Mono.error(new ConflictException(USER_NOT_FOUND)))
                 .flatMap(resp -> resp.statusCode() == 200
                         ? Mono.empty()
                         : Mono.error(new ConflictException(resp.body())));
     }
 
-    private Mono<Void> validateStateLoan(int stateId) {
+    public Mono<Void> validateStateLoan(int stateId) {
         return stateLoanRepository.findByStateLoan(stateId)
                 .switchIfEmpty(Mono.error(new ConflictException(NOT_STATE_LOAN)))
                 .then();
     }
 
-    private Mono<Void> validateLoanType(int typeId) {
+    public Mono<Void> validateLoanType(int typeId) {
         return typeLoanRepository.findByLoanType(typeId)
                 .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
                 .then();
     }
 
-    private Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
+    public Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
         return typeLoanRepository.findValueRange(typeId, amount)
                 .switchIfEmpty(Mono.error(new ConflictException(AMOUNT_NOT_RANGE)))
                 .then();
@@ -82,6 +82,7 @@ public class LoanUseCase {
                                                     stateLoanRepository.getLoanState(petition.getStateLoanId()),
                                                     typeLoanRepository.getLoanType(petition.getTypeLoanId())
                                             ).map(tuple -> new LoanDetailDTO(
+                                                    petition.getId(),
                                                     tuple.getT2().getNameTypeLoan(),
                                                     tuple.getT1().getStateName(),
                                                     petition.getTermLoan(),

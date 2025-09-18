@@ -1,10 +1,12 @@
 package co.com.solicitudescrediya.api;
 
+import co.com.solicitudescrediya.api.dto.ChangeStateLoanDTO;
 import co.com.solicitudescrediya.api.dto.LoanRequestDTO;
 import co.com.solicitudescrediya.api.globalExceptions.ValidateExceptionHandler;
 import co.com.solicitudescrediya.api.mapper.LoanMapperDTO;
 import co.com.solicitudescrediya.api.utils.ValidatorUtils;
 import co.com.solicitudescrediya.usecase.loan.LoanUseCase;
+import co.com.solicitudescrediya.usecase.notifystateloan.NotifyStateLoanUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -26,6 +28,7 @@ public class Handler {
     private final LoanUseCase loanUseCase;
     private final LoanMapperDTO loanMapperDTO;
     private final ValidatorUtils validatorUtils;
+    private final NotifyStateLoanUseCase notifyStateLoanUseCase;
 
     public Mono<ServerResponse> createLoan(ServerRequest request) {
         String token = request.headers().firstHeader("Authorization");
@@ -50,6 +53,7 @@ public class Handler {
     }
 
     public Mono<ServerResponse> getAllLoanRequests(ServerRequest request) {
+        log.info("se ingresa en getAllLoanRequests a obtener lista filtrada de prestamos por usuario");
         String statusParam = request.queryParam("status").orElse("");
         List<String> requestedStatuses = Arrays.stream(statusParam.split(","))
                 .map(String::trim)
@@ -63,6 +67,18 @@ public class Handler {
         return loanUseCase.getAllLoanRequestsGroupedByUser(requestedStatuses, token, page, size)
                 .flatMap(result -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(result));
+                        .bodyValue(result))
+                .doOnError(error -> log.error("Error al obtener lista usuarios con prestamos: {}", error.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateStateLoanAndNotify(ServerRequest request) {
+        log.info("se ingresa en updateStateLoanAndNotify para actualizar estado del prestamo");
+
+        String token = request.headers().firstHeader("Authorization");
+
+        return validatorUtils.validateRequestBody(request, ChangeStateLoanDTO.class)
+                .flatMap(changeStateLoan -> notifyStateLoanUseCase.updateStateLoan(loanMapperDTO.toChangeStateLoan(changeStateLoan), token)
+                        .flatMap(changeStatusRsp -> ServerResponse.ok().bodyValue(loanMapperDTO.toChangeStateResponse(changeStatusRsp)))
+                ).doOnError(error -> log.error("Error en la actualización del estado del prestamo: {}", error.getMessage()));
     }
 }

@@ -29,10 +29,10 @@ INSERT INTO tipo_prestamo (
     tasa_interes,
     validacion_automatica
 ) VALUES
-      (1, 'Préstamo Personal', 1000000, 20000000, 0.18, TRUE),
-      (2, 'Préstamo Vehicular', 5000000, 80000000, 0.15, TRUE),
-      (3, 'Préstamo Hipotecario', 20000000, 500000000, 0.12, FALSE),
-      (4, 'Préstamo de Libre Inversión', 2000000, 30000000, 0.20, TRUE)
+      (1, 'Personal', 1000000, 20000000, 0.18, TRUE),
+      (2, 'Vehicular', 5000000, 80000000, 0.15, TRUE),
+      (3, 'Hipotecario', 20000000, 500000000, 0.12, FALSE),
+      (4, 'Libre Inversión', 2000000, 30000000, 0.20, TRUE)
 ON CONFLICT (id_tipo_prestamo) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS solicitud (
