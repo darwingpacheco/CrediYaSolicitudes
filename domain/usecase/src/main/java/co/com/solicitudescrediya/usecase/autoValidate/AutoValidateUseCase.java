@@ -1,6 +1,7 @@
 package co.com.solicitudescrediya.usecase.autoValidate;
 
 import co.com.solicitudescrediya.model.autoValidate.AutoValidateCapacity;
+import co.com.solicitudescrediya.model.autoValidate.NewStateAutoValidate;
 import co.com.solicitudescrediya.model.autoValidate.gateways.AutoValidateCapacityRepository;
 import co.com.solicitudescrediya.model.gateways.LoanSolicitudeEventPublisher;
 import co.com.solicitudescrediya.model.loan.Loan;
@@ -21,7 +22,7 @@ public class AutoValidateUseCase {
 
     public Mono<AutoValidateCapacity> validateCapacityLoan(Loan loan, String token) {
         return typeLoanRepository.findByLoanType(loan.getTypeLoanId())
-                .flatMap(typeloan -> userGateway.getUserByEmail(token, loan.getEmailUser(), "autoValidate")
+                .flatMap(typeLoan -> userGateway.getUserByEmail(token, loan.getEmailUser(), "autoValidate")
                         .flatMap(loanApproveds -> loanRepository.findApprovedByNumberDoc(loan.getNumberDocumentUser())
                                 .map(approved -> AutoValidateCapacity.builder()
                                         .id(loan.getId())
@@ -29,11 +30,17 @@ public class AutoValidateUseCase {
                                         .emailUser(loan.getEmailUser())
                                         .baseSalary(loanApproveds.getBaseSalary())
                                         .termLoan(loan.getTermLoan())
+                                        .amountNewLoan(loan.getAmountLoan())
+                                        .interestNewLoan(typeLoan.getInterestRateLoan())
                                         .approvedLoansAuto(approved)
                                         .build()
                                 )
                                 .flatMap(solicitudeEventPublisher::sendDataSqsToValidation)
                         )
                 );
+    }
+
+    public Mono<Loan> updateStateLastAutoValidate(NewStateAutoValidate responseAutoValide) {
+        return loanRepository.updateStatus(responseAutoValide.getIdLoan(), responseAutoValide.getStatus());
     }
 }

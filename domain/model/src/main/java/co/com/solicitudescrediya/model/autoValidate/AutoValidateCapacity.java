@@ -19,5 +19,7 @@ public class AutoValidateCapacity {
     private String emailUser;
     private BigDecimal baseSalary;
     private Integer termLoan;
+    private BigDecimal amountNewLoan;
+    private BigDecimal interestNewLoan;
     private List<ApprovedLoansAutoValidation> approvedLoansAuto;
 }
