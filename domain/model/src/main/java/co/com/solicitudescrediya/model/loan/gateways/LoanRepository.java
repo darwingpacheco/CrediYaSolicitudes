@@ -1,5 +1,6 @@
 package co.com.solicitudescrediya.model.loan.gateways;
 
+import co.com.solicitudescrediya.model.loan.ApprovedLoansAutoValidation;
 import co.com.solicitudescrediya.model.loan.Loan;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,4 +17,6 @@ public interface LoanRepository {
     Mono<Loan> findBySolicitudedId(int approvedId);
 
     Mono<Loan> updateStatus(int idState, int idApproved);
+
+    Mono<List<ApprovedLoansAutoValidation>>findApprovedByNumberDoc(String numberDocumentUser);
 }

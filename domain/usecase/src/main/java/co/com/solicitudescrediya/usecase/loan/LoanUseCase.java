@@ -1,13 +1,16 @@
 package co.com.solicitudescrediya.usecase.loan;
 
-import co.com.solicitudescrediya.model.loan.reviewLoans.ListLoanUserDTO;
+import co.com.solicitudescrediya.model.gateways.LoanSolicitudeEventPublisher;
 import co.com.solicitudescrediya.model.loan.Loan;
-import co.com.solicitudescrediya.model.loan.reviewLoans.LoanDetailDTO;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
+import co.com.solicitudescrediya.model.loan.reviewLoans.ListLoanUserDTO;
+import co.com.solicitudescrediya.model.loan.reviewLoans.LoanDetailDTO;
 import co.com.solicitudescrediya.model.stateloan.gateways.StateLoanRepository;
+import co.com.solicitudescrediya.model.typeloan.LoanType;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
 import co.com.solicitudescrediya.model.user.User;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
+import co.com.solicitudescrediya.usecase.autoValidate.AutoValidateUseCase;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
 import co.com.solicitudescrediya.usecase.loan.paginator.Paginator;
 import lombok.RequiredArgsConstructor;
@@ -27,16 +30,23 @@ public class LoanUseCase {
     private final StateLoanRepository stateLoanRepository;
     private final TypeLoanRepository typeLoanRepository;
     private final UserGateway userGateway;
+    private final AutoValidateUseCase autoValidateUseCase;
 
     public Mono<Loan> createLoan(Loan loan, String token) {
         loan.setStateLoanId(1);
-        String emailUser = loan.getEmailUser();
 
-        return validateUser("create", emailUser, token)
-                .then(Mono.defer(() -> validateStateLoan(loan.getStateLoanId())))
-                .then(Mono.defer(() -> validateLoanType(loan.getTypeLoanId())))
-                .then(Mono.defer(() -> validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan())))
-                .then(Mono.defer(() -> loanRepository.createLoan(loan)));
+        return validateUser("create", loan.getEmailUser(), token)
+                .then(validateStateLoan(loan.getStateLoanId()))
+                .then(validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan()))
+                .then(validateLoanType(loan.getTypeLoanId()))
+                .flatMap(loanType -> loanRepository.createLoan(loan)
+                        .flatMap(saved -> {
+                            if (Boolean.TRUE.equals(loanType.getAutomaticValidation())) {
+                                return autoValidateUseCase.validateCapacityLoan(saved, token)
+                                        .thenReturn(saved);
+                            }
+                            return Mono.just(saved);
+                        }));
     }
 
     public Mono<Void> validateUser(String identifyUrl, String email, String token) {
@@ -53,10 +63,9 @@ public class LoanUseCase {
                 .then();
     }
 
-    public Mono<Void> validateLoanType(int typeId) {
+    public Mono<LoanType> validateLoanType(int typeId) {
         return typeLoanRepository.findByLoanType(typeId)
-                .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)))
-                .then();
+                .switchIfEmpty(Mono.error(new ConflictException(NOT_TYPE_LOAN)));
     }
 
     public Mono<Void> validateAmountRange(int typeId, BigDecimal amount) {
@@ -73,7 +82,7 @@ public class LoanUseCase {
                         groupedEmail.collectList().flatMap(loans -> {
                             String email = groupedEmail.key();
 
-                            Mono<User> userMono = userGateway.getUserByEmail(token, email);
+                            Mono<User> userMono = userGateway.getUserByEmail(token, email, "all");
 
                             // DETAIL LOAN
                             Flux<LoanDetailDTO> loanDetailsFlux = Flux.fromIterable(loans)

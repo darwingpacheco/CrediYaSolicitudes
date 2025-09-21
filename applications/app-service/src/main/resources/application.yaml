@@ -18,6 +18,16 @@ spring:
     driverClassName: "org.h2.Driver"
   jpa:
     databasePlatform: "org.hibernate.dialect.H2Dialect"
+
+entrypoint:
+  sqs:
+    region: "us-east-2"
+    queueUrl: "https://sqs.us-east-2.amazonaws.com/551647579158/autoValidateResponse-sqs"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
+
 adapter:
   r2dbc-postgresql:
     host: "localhost"
@@ -34,6 +44,7 @@ adapter:
     region: "us-east-2"
     queues:
       loan-application-state-changed: "https://sqs.us-east-2.amazonaws.com/551647579158/queue-loan"
+      auto-validate-loan: "https://sqs.us-east-2.amazonaws.com/551647579158/auto-validate-sqs"
 
 management:
   endpoints:
