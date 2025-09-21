@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum LoanSolicitudeSQSName {
     LOAN_APPLICATION_STATE_CHANGED("loan-application-state-changed"),
-    LOAN_APPLICATION_AUTO_VALIDATION_REQUESTED("auto-validate-loan");
+    LOAN_APPLICATION_AUTO_VALIDATION_REQUESTED("auto-validate-loan"),
+    LOAN_APPROVED_TO_REVIEW_LIST("review-approved-loan");
     private final String key;
 }

@@ -5,6 +5,7 @@ import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
 import co.com.solicitudescrediya.model.notification.ChangeStateLoan;
 import co.com.solicitudescrediya.model.notification.EmailNotification;
+import co.com.solicitudescrediya.model.reportApprovedLoan.LoanApprovedReview;
 import co.com.solicitudescrediya.model.stateloan.LoanState;
 import co.com.solicitudescrediya.model.stateloan.gateways.StateLoanRepository;
 import co.com.solicitudescrediya.model.typeloan.LoanType;
@@ -13,6 +14,8 @@ import co.com.solicitudescrediya.usecase.loan.LoanUseCase;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 import static co.com.solicitudescrediya.model.util.Constants.*;
 
@@ -23,6 +26,7 @@ public class NotifyStateLoanUseCase {
     private final StateLoanRepository stateLoanRepository;
     private final LoanUseCase loanUseCase;
     private final LoanSolicitudeEventPublisher loanSolicitudeRepository;
+    private final LoanSolicitudeEventPublisher solicitudeEventPublisher;
 
     public Mono<Loan> updateStateLoan(ChangeStateLoan changeStateLoan, String token) {
         return loanRepository.findBySolicitudedId(changeStateLoan.getIdApplication())
@@ -30,12 +34,24 @@ public class NotifyStateLoanUseCase {
                 .flatMap(loanValid ->
                         loanUseCase.validateUser("updateLoan", loanValid.getEmailUser(), token)
                                 .then(Mono.defer(() -> validateStateUpdate(changeStateLoan.getIdState())))
-                                .then(Mono.defer(() -> loanRepository.updateStatus(changeStateLoan.getIdState(), changeStateLoan.getIdApplication())))
+                                .then(Mono.defer(() -> loanRepository.updateStatus(changeStateLoan.getIdApplication(), changeStateLoan.getIdState())))
                 )
                 .flatMap(loanApproved -> sendEmailNotification(loanApproved)
                         .flatMap(emailNotification -> publishToSQS(emailNotification, loanApproved))
                         .thenReturn(loanApproved)
-                );
+                )
+                .flatMap(sendApprovedDecision -> {
+                    Mono<Void> notifyApproved = Mono.empty();
+                    if (sendApprovedDecision.getStateLoanId() == 2) {
+                        LoanApprovedReview loanApprovedReview = new LoanApprovedReview(
+                                LocalDateTime.now().toString(),
+                                sendApprovedDecision.getAmountLoan()
+                        );
+                        notifyApproved = solicitudeEventPublisher.notificationSqsForReview(loanApprovedReview);
+                    }
+
+                    return notifyApproved.thenReturn(sendApprovedDecision);
+                });
     }
 
     private Mono<Loan> publishToSQS(EmailNotification emailNotification, Loan loan) {

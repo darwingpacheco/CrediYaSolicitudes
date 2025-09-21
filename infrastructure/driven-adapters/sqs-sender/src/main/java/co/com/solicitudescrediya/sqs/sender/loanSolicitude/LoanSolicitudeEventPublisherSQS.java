@@ -3,6 +3,8 @@ package co.com.solicitudescrediya.sqs.sender.loanSolicitude;
 import co.com.solicitudescrediya.model.autoValidate.AutoValidateCapacity;
 import co.com.solicitudescrediya.model.gateways.LoanSolicitudeEventPublisher;
 import co.com.solicitudescrediya.model.notification.EmailNotification;
+import co.com.solicitudescrediya.model.reportApprovedLoan.LoanApprovedReview;
+import co.com.solicitudescrediya.sqs.sender.SQSApprovedReview;
 import co.com.solicitudescrediya.sqs.sender.SQSAutoValidate;
 import co.com.solicitudescrediya.sqs.sender.SQSSender;
 import co.com.solicitudescrediya.sqs.sender.config.SQSSenderProperties;
@@ -20,6 +22,7 @@ public class LoanSolicitudeEventPublisherSQS implements LoanSolicitudeEventPubli
 
     private final SQSSender publisher;
     private final SQSAutoValidate publisherAutoValidate;
+    private final SQSApprovedReview publisherApprovedReview;
     private final SQSSenderProperties properties;
 
     @Override
@@ -53,5 +56,20 @@ public class LoanSolicitudeEventPublisherSQS implements LoanSolicitudeEventPubli
                 autoValidateCapacity,
                 properties.queues().get(LoanSolicitudeSQSName.LOAN_APPLICATION_AUTO_VALIDATION_REQUESTED.getKey())
         ).thenReturn(autoValidateCapacity);
+    }
+
+    @Override
+    public Mono<Void> notificationSqsForReview(LoanApprovedReview loanApprovedReview) {
+        String queueUrl = properties.queues().get("review-approved-loan");
+
+        if (queueUrl == null) {
+            log.error("¡ERROR! No se encontró la URL para la cola 'review-approved-loan' en las propiedades.");
+            return Mono.error(new IllegalStateException("URL de la cola no configurada."));
+        }
+
+        return publisherApprovedReview.publish(
+                loanApprovedReview,
+                properties.queues().get(LoanSolicitudeSQSName.LOAN_APPROVED_TO_REVIEW_LIST.getKey())
+        ).then();
     }
 }

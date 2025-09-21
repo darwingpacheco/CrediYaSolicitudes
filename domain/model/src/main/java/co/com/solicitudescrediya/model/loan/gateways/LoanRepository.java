@@ -16,7 +16,7 @@ public interface LoanRepository {
 
     Mono<Loan> findBySolicitudedId(int approvedId);
 
-    Mono<Loan> updateStatus(int idState, int idApproved);
+    Mono<Loan> updateStatus(int idApproved, int idState);
 
     Mono<List<ApprovedLoansAutoValidation>>findApprovedByNumberDoc(String numberDocumentUser);
 }

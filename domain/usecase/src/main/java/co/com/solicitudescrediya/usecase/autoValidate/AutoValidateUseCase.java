@@ -6,11 +6,18 @@ import co.com.solicitudescrediya.model.autoValidate.gateways.AutoValidateCapacit
 import co.com.solicitudescrediya.model.gateways.LoanSolicitudeEventPublisher;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
+import co.com.solicitudescrediya.model.reportApprovedLoan.LoanApprovedReview;
+import co.com.solicitudescrediya.model.reportApprovedLoan.gateway.LoanApprovedReviewRepository;
 import co.com.solicitudescrediya.model.typeloan.LoanType;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
+import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+
+import static co.com.solicitudescrediya.model.util.Constants.ID_LOAN_NOT_FOUND;
 
 @RequiredArgsConstructor
 public class AutoValidateUseCase {
@@ -40,7 +47,23 @@ public class AutoValidateUseCase {
                 );
     }
 
-    public Mono<Loan> updateStateLastAutoValidate(NewStateAutoValidate responseAutoValide) {
-        return loanRepository.updateStatus(responseAutoValide.getIdLoan(), responseAutoValide.getStatus());
+    public Mono<NewStateAutoValidate> updateStateLastAutoValidate(NewStateAutoValidate responseAutoValide) {
+        return loanRepository.findBySolicitudedId(responseAutoValide.getIdLoan())
+                .switchIfEmpty(Mono.error(new ConflictException(ID_LOAN_NOT_FOUND)))
+                .then(loanRepository.updateStatus(responseAutoValide.getIdLoan(), responseAutoValide.getStatus()))
+                .flatMap(loan -> validateApprovedState(loan, responseAutoValide));
+    }
+
+    public Mono<NewStateAutoValidate> validateApprovedState(Loan loan, NewStateAutoValidate responseAutoValidate) {
+        Mono<Void> notifyApproved = Mono.empty();
+        if (loan.getStateLoanId() == 2) {
+            LoanApprovedReview loanApprovedReview = new LoanApprovedReview(
+                    LocalDateTime.now().toString(),
+                    loan.getAmountLoan()
+            );
+            notifyApproved = solicitudeEventPublisher.notificationSqsForReview(loanApprovedReview);
+        }
+
+        return notifyApproved.thenReturn(responseAutoValidate);
     }
 }

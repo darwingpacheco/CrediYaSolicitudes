@@ -68,8 +68,8 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Mono<Loan> updateStatus(int idState, int idApproved) {
-        return repository.updateStateByApprovedId(idState, idApproved)
+    public Mono<Loan> updateStatus(int idApproved, int idState) {
+        return repository.updateStateByApprovedId(idApproved, idState)
                 .map(this::toEntity);
     }
 
