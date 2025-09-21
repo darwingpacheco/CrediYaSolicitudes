@@ -1,8 +1,12 @@
 package co.com.solicitudescrediya.sqs.listener.helper;
 
+import co.com.solicitudescrediya.sqs.listener.SQSProcessor;
 import co.com.solicitudescrediya.sqs.listener.config.SQSProperties;
+import jakarta.annotation.PostConstruct;
 import lombok.Builder;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -16,65 +20,62 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 @Log4j2
-@Builder
+@Component
 public class SQSListener {
-    private final SqsAsyncClient client;
-    private final SQSProperties properties;
-    private final Function<Message, Mono<Void>> processor;
-    private String operation;
 
-    public SQSListener start() {
-        this.operation = "MessageFrom:" + properties.queueUrl();
-        ExecutorService service = Executors.newFixedThreadPool(properties.numberOfThreads());
-        Flux<Void> flow = listenRetryRepeat().publishOn(Schedulers.fromExecutorService(service));
-        for (var i = 0; i < properties.numberOfThreads(); i++) {
-            flow.subscribe();
-        }
-        return this;
+    @Qualifier("sqsListenerClient")
+    private final SqsAsyncClient sqsAsyncClient;
+    private final SQSProperties properties;
+    private final SQSProcessor processor;
+
+    public SQSListener(
+            @Qualifier("sqsListenerClient") SqsAsyncClient sqsAsyncClient,
+            SQSProperties properties,
+            SQSProcessor processor
+    ){
+        this.processor = processor;
+        this.properties = properties;
+        this.sqsAsyncClient = sqsAsyncClient;
     }
 
-    private Flux<Void> listenRetryRepeat() {
-        return listen()
-                .doOnError(e -> log.error("Error listening sqs queue", e))
-                .repeat();
+    @PostConstruct
+    public void start() {
+        log.info("Iniciando Reactive SQS Listener en cola: {}", properties.queueUrl());
+
+        Flux.defer(this::listen)
+                .subscribeOn(Schedulers.boundedElastic())
+                .repeat()
+                .retry()
+                .subscribe();
     }
 
     private Flux<Void> listen() {
-        return getMessages()
-                .flatMap(message -> processor.apply(message)
-                        .name("async_operation")
-                        .tag("operation", operation)
-                        .metrics()
-                        .then(confirm(message)))
-                .onErrorContinue((e, o) -> log.error("Error listening sqs message", e));
+        return Mono.fromFuture(() -> sqsAsyncClient.receiveMessage(ReceiveMessageRequest.builder()
+                        .queueUrl(properties.queueUrl())
+                        .maxNumberOfMessages(properties.maxNumberOfMessages())
+                        .waitTimeSeconds(properties.waitTimeSeconds())
+                        .visibilityTimeout(properties.visibilityTimeoutSeconds())
+                        .build()))
+                .flatMapMany(response -> Flux.fromIterable(response.messages()))
+                .flatMap(this::handleMessage, properties.numberOfThreads())
+                .onErrorContinue((ex, obj) -> log.error("Error en listener con {}", obj, ex));
     }
 
-    private Mono<Void> confirm(Message message) {
-        return Mono.fromCallable(() -> getDeleteMessageRequest(message.receiptHandle()))
-                .flatMap(request -> Mono.fromFuture(client.deleteMessage(request)))
+    private Mono<Void> handleMessage(Message message) {
+        return processor.apply(message)
+                .then(deleteMessage(message))
+                .onErrorResume(ex -> {
+                    log.error("Error procesando mensaje (ID={}): {}", message.messageId(), ex.getMessage(), ex);
+                    return Mono.empty();
+                });
+    }
+
+    private Mono<Void> deleteMessage(Message message) {
+        return Mono.fromFuture(() -> sqsAsyncClient.deleteMessage(DeleteMessageRequest.builder()
+                        .queueUrl(properties.queueUrl())
+                        .receiptHandle(message.receiptHandle())
+                        .build()))
+                .doOnSuccess(r -> log.info("Mensaje eliminado (ID={})", message.messageId()))
                 .then();
-    }
-
-    private Flux<Message> getMessages() {
-        return Mono.fromCallable(this::getReceiveMessageRequest)
-                .flatMap(request -> Mono.fromFuture(client.receiveMessage(request)))
-                .doOnNext(response -> log.debug("{} received messages from sqs", response.messages().size()))
-                .flatMapMany(response -> Flux.fromIterable(response.messages()));
-    }
-
-    private ReceiveMessageRequest getReceiveMessageRequest() {
-        return ReceiveMessageRequest.builder()
-                .queueUrl(properties.queueUrl())
-                .maxNumberOfMessages(properties.maxNumberOfMessages())
-                .waitTimeSeconds(properties.waitTimeSeconds())
-                .visibilityTimeout(properties.visibilityTimeoutSeconds())
-                .build();
-    }
-
-    private DeleteMessageRequest getDeleteMessageRequest(String receiptHandle) {
-        return DeleteMessageRequest.builder()
-                .queueUrl(properties.queueUrl())
-                .receiptHandle(receiptHandle)
-                .build();
     }
 }

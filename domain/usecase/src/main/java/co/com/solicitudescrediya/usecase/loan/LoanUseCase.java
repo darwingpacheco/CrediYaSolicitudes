@@ -31,26 +31,22 @@ public class LoanUseCase {
     private final TypeLoanRepository typeLoanRepository;
     private final UserGateway userGateway;
     private final AutoValidateUseCase autoValidateUseCase;
-    private final LoanSolicitudeEventPublisher loanSolicitudeEventPublisher;
 
     public Mono<Loan> createLoan(Loan loan, String token) {
         loan.setStateLoanId(1);
 
         return validateUser("create", loan.getEmailUser(), token)
                 .then(validateStateLoan(loan.getStateLoanId()))
+                .then(validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan()))
                 .then(validateLoanType(loan.getTypeLoanId()))
-                .flatMap(loanType -> {
-                    validateAmountRange(loan.getTypeLoanId(), loan.getAmountLoan());
-
-                    return loanRepository.createLoan(loan)
-                            .flatMap(saved -> {
-                                if (Boolean.TRUE.equals(loanType.getAutomaticValidation())) {
-                                    return autoValidateUseCase.validateCapacityLoan(saved, token)
-                                            .thenReturn(saved);
-                                }
-                                return Mono.just(saved);
-                            });
-                });
+                .flatMap(loanType -> loanRepository.createLoan(loan)
+                        .flatMap(saved -> {
+                            if (Boolean.TRUE.equals(loanType.getAutomaticValidation())) {
+                                return autoValidateUseCase.validateCapacityLoan(saved, token)
+                                        .thenReturn(saved);
+                            }
+                            return Mono.just(saved);
+                        }));
     }
 
     public Mono<Void> validateUser(String identifyUrl, String email, String token) {

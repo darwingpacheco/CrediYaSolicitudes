@@ -45,7 +45,7 @@ public class LoanSolicitudeEventPublisherSQS implements LoanSolicitudeEventPubli
         String queueUrl = properties.queues().get("auto-validate-loan");
 
         if (queueUrl == null) {
-            log.error("¡ERROR! No se encontró la URL para la cola 'loan-application-state-changed' en las propiedades.");
+            log.error("¡ERROR! No se encontró la URL para la cola 'auto-validate-loan' en las propiedades.");
             return Mono.error(new IllegalStateException("URL de la cola no configurada."));
         }
 

@@ -18,10 +18,20 @@ spring:
     driverClassName: "org.h2.Driver"
   jpa:
     databasePlatform: "org.hibernate.dialect.H2Dialect"
+
+entrypoint:
+  sqs:
+    region: "us-east-2"
+    queueUrl: "https://sqs.us-east-2.amazonaws.com/551647579158/autoValidateResponse-sqs"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
+
 adapter:
   r2dbc-postgresql:
     host: "localhost"
-    port: 5433
+    port: 5432
     database: "CrediYaSolicitudes"
     schema: "public"
     username: "postgres"

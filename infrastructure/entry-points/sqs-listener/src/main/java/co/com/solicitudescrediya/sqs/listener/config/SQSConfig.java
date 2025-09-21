@@ -1,6 +1,7 @@
 package co.com.solicitudescrediya.sqs.listener.config;
 
 import co.com.solicitudescrediya.sqs.listener.helper.SQSListener;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;
@@ -22,17 +23,7 @@ import java.util.function.Function;
 @Configuration
 public class SQSConfig {
 
-    @Bean
-    public SQSListener sqsListener(SqsAsyncClient client, SQSProperties properties, Function<Message, Mono<Void>> fn) {
-        return SQSListener.builder()
-                .client(client)
-                .properties(properties)
-                .processor(fn)
-                .build()
-                .start();
-    }
-
-    @Bean
+    @Bean(name = "sqsListenerClient")
     public SqsAsyncClient sqsListenerClient(SQSProperties properties, MetricPublisher publisher) {
         return SqsAsyncClient.builder()
                 .endpointOverride(resolveEndpoint(properties))

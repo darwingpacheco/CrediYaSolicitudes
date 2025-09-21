@@ -4,6 +4,7 @@ import co.com.solicitudescrediya.sqs.sender.config.SQSSenderProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -14,7 +15,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @Log4j2
 @RequiredArgsConstructor
 public class SQSSender {
-    private final SqsAsyncClient client;
+    private final @Qualifier("sqsSenderConfig") SqsAsyncClient client;
     private final ObjectMapper objectMapper;
 
     public Mono<String> publish(Object event, String queueUrl) {
