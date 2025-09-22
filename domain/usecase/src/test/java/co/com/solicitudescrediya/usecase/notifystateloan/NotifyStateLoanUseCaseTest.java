@@ -95,7 +95,7 @@ public class NotifyStateLoanUseCaseTest {
         when(loanRepository.findBySolicitudedId(changeState.getIdApplication())).thenReturn(Mono.just(loan));
         when(loanUseCase.validateUser(anyString(), anyString(), anyString())).thenReturn(Mono.empty());
         when(stateLoanRepository.findByStateToUpdate(anyInt())).thenReturn(Mono.just(loanState));
-        when(loanRepository.updateStatus(changeState.getIdState(), changeState.getIdApplication())).thenReturn(Mono.just(loan));
+        when(loanRepository.updateStatus(anyInt(), anyInt())).thenReturn(Mono.just(loan));
         when(typeLoanRepository.findByLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(loanType));
         when(loanSolicitudePublisher.publish(any(EmailNotification.class))).thenReturn(Mono.empty());
 
@@ -141,7 +141,7 @@ public class NotifyStateLoanUseCaseTest {
                 .thenReturn(Mono.empty());
         when(stateLoanRepository.findByStateToUpdate(anyInt()))
                 .thenReturn(Mono.just(loanState));
-        when(loanRepository.updateStatus(changeState.getIdState(), changeState.getIdApplication()))
+        when(loanRepository.updateStatus(anyInt(), anyInt()))
                 .thenReturn(Mono.just(loan));
 
         when(typeLoanRepository.findByLoanType(anyInt()))
@@ -190,4 +190,25 @@ public class NotifyStateLoanUseCaseTest {
                 })
                 .verify();
     }
+
+    @Test
+    void validateStateUpdate_success() {
+        when(stateLoanRepository.findByStateToUpdate(2)).thenReturn(Mono.just(loanState));
+
+        StepVerifier.create(notifyStateLoanUseCase.validateStateUpdate(2))
+                .verifyComplete();
+    }
+
+    @Test
+    void validateStateUpdate_failure() {
+        when(stateLoanRepository.findByStateToUpdate(2)).thenReturn(Mono.empty());
+
+        StepVerifier.create(notifyStateLoanUseCase.validateStateUpdate(2))
+                .expectErrorSatisfies(error -> {
+                    assertTrue(error instanceof ConflictException);
+                    assertEquals(NOT_STATE_LOAN, error.getMessage());
+                })
+                .verify();
+    }
+
 }

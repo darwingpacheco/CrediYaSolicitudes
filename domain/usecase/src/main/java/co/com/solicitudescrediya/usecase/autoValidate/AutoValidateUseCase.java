@@ -2,13 +2,10 @@ package co.com.solicitudescrediya.usecase.autoValidate;
 
 import co.com.solicitudescrediya.model.autoValidate.AutoValidateCapacity;
 import co.com.solicitudescrediya.model.autoValidate.NewStateAutoValidate;
-import co.com.solicitudescrediya.model.autoValidate.gateways.AutoValidateCapacityRepository;
 import co.com.solicitudescrediya.model.gateways.LoanSolicitudeEventPublisher;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
 import co.com.solicitudescrediya.model.reportApprovedLoan.LoanApprovedReview;
-import co.com.solicitudescrediya.model.reportApprovedLoan.gateway.LoanApprovedReviewRepository;
-import co.com.solicitudescrediya.model.typeloan.LoanType;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
@@ -50,7 +47,7 @@ public class AutoValidateUseCase {
     public Mono<NewStateAutoValidate> updateStateLastAutoValidate(NewStateAutoValidate responseAutoValide) {
         return loanRepository.findBySolicitudedId(responseAutoValide.getIdLoan())
                 .switchIfEmpty(Mono.error(new ConflictException(ID_LOAN_NOT_FOUND)))
-                .then(loanRepository.updateStatus(responseAutoValide.getIdLoan(), responseAutoValide.getStatus()))
+                .flatMap(loan -> loanRepository.updateStatus(responseAutoValide.getIdLoan(), responseAutoValide.getStatus()))
                 .flatMap(loan -> validateApprovedState(loan, responseAutoValide));
     }
 

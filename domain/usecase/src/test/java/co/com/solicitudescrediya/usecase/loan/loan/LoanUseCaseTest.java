@@ -1,6 +1,7 @@
 package co.com.solicitudescrediya.usecase.loan.loan;
 
 import co.com.solicitudescrediya.model.UserCheckResponse;
+import co.com.solicitudescrediya.model.autoValidate.AutoValidateCapacity;
 import co.com.solicitudescrediya.model.loan.Loan;
 import co.com.solicitudescrediya.model.loan.gateways.LoanRepository;
 import co.com.solicitudescrediya.model.loan.reviewLoans.ListLoanUserDTO;
@@ -11,6 +12,7 @@ import co.com.solicitudescrediya.model.typeloan.LoanType;
 import co.com.solicitudescrediya.model.typeloan.gateways.TypeLoanRepository;
 import co.com.solicitudescrediya.model.user.User;
 import co.com.solicitudescrediya.model.userGateway.UserGateway;
+import co.com.solicitudescrediya.usecase.autoValidate.AutoValidateUseCase;
 import co.com.solicitudescrediya.usecase.loan.LoanUseCase;
 import co.com.solicitudescrediya.usecase.loan.conflictException.ConflictException;
 import co.com.solicitudescrediya.usecase.loan.paginator.Paginator;
@@ -46,6 +48,9 @@ class LoanUseCaseTest {
 
     @Mock
     private UserGateway userGateway;
+
+    @Mock
+    private AutoValidateUseCase autoValidateUseCase;
 
     @InjectMocks
     private LoanUseCase loanUseCase;
@@ -110,6 +115,15 @@ class LoanUseCaseTest {
         when(userGateway.existUserByEmail("create", loan.getEmailUser(), token))
                 .thenReturn(Mono.just(mockResponse));
 
+        lenient().when(stateLoanRepository.findByStateLoan(anyInt()))
+                .thenReturn(Mono.empty());
+        lenient().when(typeLoanRepository.findByLoanType(anyInt()))
+                .thenReturn(Mono.just(loanType));
+        lenient().when(typeLoanRepository.findValueRange(anyInt(), any()))
+                .thenReturn(Mono.just(loanType));
+        lenient().when(loanRepository.createLoan(any()))
+                .thenReturn(Mono.just(loan));
+
         StepVerifier.create(loanUseCase.createLoan(loan, token))
                 .expectErrorMatches(e -> e instanceof ConflictException &&
                         e.getMessage().equals("Usuario no encontrado"))
@@ -125,6 +139,10 @@ class LoanUseCaseTest {
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.empty());
+        when(typeLoanRepository.findByLoanType(loan.getTypeLoanId()))
+                .thenReturn(Mono.just(loanType));
+        when(typeLoanRepository.findValueRange(loan.getTypeLoanId(), loan.getAmountLoan()))
+                .thenReturn(Mono.just(loanType));
 
         StepVerifier.create(loanUseCase.createLoan(loan, token))
                 .expectErrorMatches(e -> e instanceof ConflictException &&
@@ -139,6 +157,8 @@ class LoanUseCaseTest {
                 .thenReturn(Mono.just(mockResponse));
         when(stateLoanRepository.findByStateLoan(loan.getStateLoanId()))
                 .thenReturn(Mono.just(loanState));
+        when(typeLoanRepository.findValueRange(loan.getTypeLoanId(), loan.getAmountLoan()))
+                .thenReturn(Mono.just(loanType));
         when(typeLoanRepository.findByLoanType(loan.getTypeLoanId()))
                 .thenReturn(Mono.empty());
 
@@ -178,6 +198,8 @@ class LoanUseCaseTest {
         when(typeLoanRepository.findValueRange(loanType.getId(), loan.getAmountLoan()))
                 .thenReturn(Mono.just(loanType));
         when(loanRepository.createLoan(loan)).thenReturn(Mono.just(loan));
+        when(autoValidateUseCase.validateCapacityLoan(loan, token))
+                .thenReturn(Mono.just(new AutoValidateCapacity()));
 
         StepVerifier.create(loanUseCase.createLoan(loan, token))
                 .expectNext(loan)
@@ -193,7 +215,7 @@ class LoanUseCaseTest {
                 "cliente@ejemplo.com", 2, 1);
 
         when(loanRepository.findPendingForReview(allowedStatuses)).thenReturn(Flux.just(loan));
-        when(userGateway.getUserByEmail(token, loan.getEmailUser(), "")).thenReturn(Mono.just(user));
+        when(userGateway.getUserByEmail(token, loan.getEmailUser(), "all")).thenReturn(Mono.just(user));
         when(stateLoanRepository.getLoanState(loan.getStateLoanId())).thenReturn(Mono.just(loanState));
         when(typeLoanRepository.getLoanType(loan.getTypeLoanId())).thenReturn(Mono.just(loanType));
         when(loanRepository.findApprovedByEmail(loan.getEmailUser())).thenReturn(Flux.just(approvedLoan));
