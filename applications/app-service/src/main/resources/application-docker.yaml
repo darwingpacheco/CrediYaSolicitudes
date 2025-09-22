@@ -40,6 +40,7 @@ adapter:
     queues:
       loan-application-state-changed: "https://sqs.us-east-2.amazonaws.com/551647579158/queue-loan"
       auto-validate-loan: "https://sqs.us-east-2.amazonaws.com/551647579158/auto-validate-sqs"
+      review-approved-loan: "https://sqs.us-east-2.amazonaws.com/551647579158/approved-loan-review"
 
 management:
   endpoints:

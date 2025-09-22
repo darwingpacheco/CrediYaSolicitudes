@@ -23,6 +23,7 @@ services:
     depends_on:
       - db-loan
       - authentication-app
+      - reports-app
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - AWS_ACCESS_KEY_ID
@@ -57,6 +58,20 @@ services:
       - "5432:5432"
     volumes:
       - db-auth-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  reports-app:
+    image: reports:latest
+    container_name: reports-app
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+    ports:
+      - "8082:8082"
+    depends_on:
+      - authentication-app
     networks:
       - app-network
 

@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class LoanApprovedReview {
-    private String dateApproved;
-    private BigDecimal amountLoanAprroved;
+    private String metrical;
+    private BigDecimal amount;
 }
